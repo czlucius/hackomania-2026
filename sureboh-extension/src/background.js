@@ -58,14 +58,14 @@ async function analyzeWithBackend(text, url = '') {
     const data = await res.json();
 
     // Map backend response (FakeNewsAnalysisResult) to a concise UI format
-    let verdictEn = "Unverified";
+    let verdictEn = "Unverified / uncertain";
     let trustScore = 50;
 
     if (data.classification === "Likely accurate") {
-        verdictEn = "Verified";
+        verdictEn = "Likely accurate";
         trustScore = 95;
     } else if (data.classification === "Potentially misleading") {
-        verdictEn = "Misleading";
+        verdictEn = "Potentially misleading";
         trustScore = 15;
     }
 
@@ -78,37 +78,37 @@ async function analyzeWithBackend(text, url = '') {
     if (data.explanation) {
         summaryEn.push({
             type: data.classification === "Likely accurate" ? 'real' : 'fake',
-            text: data.explanation.split('.')[0] + '.'
+            text: data.explanation
         });
     }
     if (data.zh?.explanation) {
         summaryZh.push({
             type: data.classification === "Likely accurate" ? 'real' : 'fake',
-            text: data.zh.explanation.split('。')[0] + '。'
+            text: data.zh.explanation
         });
     }
     if (data.ms?.explanation) {
         summaryMs.push({
             type: data.classification === "Likely accurate" ? 'real' : 'fake',
-            text: data.ms.explanation.split('.')[0] + '.'
+            text: data.ms.explanation
         });
     }
 
     // 2. Supporting Evidence or Missing Context
     if (data.classification === "Likely accurate") {
-        if (data.supporting_evidence) summaryEn.push({ type: 'real', text: `Verified: ${data.supporting_evidence.slice(0, 100)}...` });
-        if (data.zh?.supporting_evidence) summaryZh.push({ type: 'real', text: `已验证: ${data.zh.supporting_evidence.slice(0, 100)}...` });
-        if (data.ms?.supporting_evidence) summaryMs.push({ type: 'real', text: `Disahkan: ${data.ms.supporting_evidence.slice(0, 100)}...` });
+        if (data.supporting_evidence) summaryEn.push({ type: 'real', text: `Verified: ${data.supporting_evidence}` });
+        if (data.zh?.supporting_evidence) summaryZh.push({ type: 'real', text: `已验证: ${data.zh.supporting_evidence}` });
+        if (data.ms?.supporting_evidence) summaryMs.push({ type: 'real', text: `Disahkan: ${data.ms.supporting_evidence}` });
     } else if (data.missing_context) {
-        summaryEn.push({ type: 'info', text: `Context needed: ${data.missing_context.split('\n')[0]}` });
-        if (data.zh?.missing_context) summaryZh.push({ type: 'info', text: `缺少背景: ${data.zh.missing_context.split('\n')[0]}` });
-        if (data.ms?.missing_context) summaryMs.push({ type: 'info', text: `Konteks diperlukan: ${data.ms.missing_context.split('\n')[0]}` });
+        summaryEn.push({ type: 'info', text: `Context needed: ${data.missing_context}` });
+        if (data.zh?.missing_context) summaryZh.push({ type: 'info', text: `缺少背景: ${data.zh.missing_context}` });
+        if (data.ms?.missing_context) summaryMs.push({ type: 'info', text: `Konteks diperlukan: ${data.ms.missing_context}` });
     }
 
     // 3. Recommended Action
-    if (data.recommended_action) summaryEn.push({ type: 'info', text: `Action: ${data.recommended_action.split('.')[0]}.` });
-    if (data.zh?.recommended_action) summaryZh.push({ type: 'info', text: `建议: ${data.zh.recommended_action.split('。')[0]}。` });
-    if (data.ms?.recommended_action) summaryMs.push({ type: 'info', text: `Tindakan: ${data.ms.recommended_action.split('.')[0]}.` });
+    if (data.recommended_action) summaryEn.push({ type: 'info', text: `Action: ${data.recommended_action}` });
+    if (data.zh?.recommended_action) summaryZh.push({ type: 'info', text: `建议: ${data.zh.recommended_action}` });
+    if (data.ms?.recommended_action) summaryMs.push({ type: 'info', text: `Tindakan: ${data.ms.recommended_action}` });
 
     return {
         trust_score: trustScore,
@@ -116,8 +116,8 @@ async function analyzeWithBackend(text, url = '') {
         confidence_level: data.confidence_level,
         verdict: {
             en: verdictEn,
-            zh: verdictEn === "Verified" ? "已验证" : verdictEn === "Misleading" ? "误导性" : "未验证",
-            ms: verdictEn === "Verified" ? "Disahkan" : verdictEn === "Misleading" ? "Mengelirukan" : "Tidak Disahkan"
+            zh: verdictEn === "Likely accurate" ? "基本准确" : verdictEn === "Potentially misleading" ? "可能含有误导性信息" : "未经证实 / 不确定",
+            ms: verdictEn === "Likely accurate" ? "Mungkin tepat" : verdictEn === "Potentially misleading" ? "Mungkin mengelirukan" : "Tidak disahkan / tidak pasti"
         },
         summary: {
             en: summaryEn,
@@ -131,7 +131,9 @@ async function analyzeWithBackend(text, url = '') {
 // Fallback response for errors
 const errorFallback = {
     trust_score: 50,
-    verdict: { en: "Unverified", zh: "未验证", ms: "Tidak Disahkan" },
+    classification: "Unverified / uncertain",
+    confidence_level: "Low",
+    verdict: { en: "Unverified / uncertain", zh: "未经证实 / 不确定", ms: "Tidak disahkan / tidak pasti" },
     summary: {
         en: [{ type: 'info', text: "Analysis could not be completed. Please try again." }],
         zh: [{ type: 'info', text: "无法完成分析，请再试一次。" }],
