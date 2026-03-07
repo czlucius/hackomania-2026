@@ -196,6 +196,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
 });
 
+const imageCache = new Map();
+
+function getImageCacheKey(imageUrl, imageB64) {
+    if (imageUrl) return imageUrl;
+    if (imageB64) {
+        // Use first 50 chars of b64 as a quick hash key
+        return imageB64.substring(0, 50);
+    }
+    return null;
+}
+
 async function analyzeImageWithBackend(imageUrl, imageB64, mime, alt, platform) {
     const cacheKey = getImageCacheKey(imageUrl, imageB64);
     if (cacheKey && imageCache.has(cacheKey)) {
