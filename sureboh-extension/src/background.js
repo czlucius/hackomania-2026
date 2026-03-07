@@ -165,11 +165,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 claim_text: claimText,
-                verdict: assessment?.verdict?.en,
-                trust_score: assessment?.trust_score,
-                vote: vote,
+                verdict: assessment?.classification || 'Unknown',
+                trust_score: assessment?.trust_score || 50,
+                vote: vote === 1 ? 'upvote' : 'downvote',
                 platform: platform,
-                url: sender?.tab?.url || ''
+                url: assessment?.source_url || sender?.tab?.url || ''
             })
         })
             .then(res => res.json())
