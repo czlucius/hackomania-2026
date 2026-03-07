@@ -72,6 +72,9 @@ const scanDOM = () => {
             '.message-text:not([data-sureanot-injected])',
             '.translatable-message:not([data-sureanot-injected])',
             '.message > .bubble-content .text:not([data-sureanot-injected])',
+            '.Message .text-content:not([data-sureanot-injected])',
+            '.message-content.text:not([data-sureanot-injected])',
+            '[class*="message-text"]:not([data-sureanot-injected])'
         ].join(', ');
 
         const allMessages = document.querySelectorAll(selectors);
@@ -326,22 +329,51 @@ const scanDOM = () => {
 
     // --- Image Scanning Logic (Cross-platform + Instagram) ---
     // On Instagram, target post/reel images inside article; elsewhere scan everything.
-    const imgSelector = isInstagram
-        ? 'article img:not([data-sureanot-img-analyzed]), section img:not([data-sureanot-img-analyzed])'
-        : 'img:not([data-sureanot-img-analyzed])';
+    let imgSelector = 'img:not([data-sureanot-img-analyzed])';
+    if (isInstagram) {
+        imgSelector = 'article img:not([data-sureanot-img-analyzed]), section img:not([data-sureanot-img-analyzed])';
+    } else if (isTelegram) {
+        // Target images inside chat messages only (skipping avatars/UI)
+        imgSelector = '.message img:not([data-sureanot-img-analyzed]), .bubble-content img:not([data-sureanot-img-analyzed]), .media-photo img:not([data-sureanot-img-analyzed]), .message-media img:not([data-sureanot-img-analyzed]), [class*="message"] img:not([data-sureanot-img-analyzed]), .MessageMedia img:not([data-sureanot-img-analyzed])';
+    }
+
     const images = document.querySelectorAll(imgSelector);
     images.forEach(img => {
-        img.setAttribute('data-sureanot-img-analyzed', 'true');
         const src = img.src || '';
         const alt = img.alt || '';
 
-        // Skip SVG data URIs, UI icons, and small images
-        if (!src || img.width < 100 || img.height < 100) return;
-        if (src.startsWith('data:image/svg') || (src.startsWith('data:') && !src.startsWith('data:image'))) return;
+        // Skip SVG data URIs, UI icons
+        if (!src || src.startsWith('data:image/svg') || (src.startsWith('data:') && !src.startsWith('data:image'))) {
+            img.setAttribute('data-sureanot-img-analyzed', 'true');
+            return;
+        }
+
+        // Identify known UI avatars to skip permanently
+        if (img.className.includes('emoji') || img.className.includes('avatar') || src.includes('/emoji/')) {
+            img.setAttribute('data-sureanot-img-analyzed', 'true');
+            return;
+        }
+
+        const rect = img.getBoundingClientRect();
+
+        // If not rendered yet, skip without marking analyzed so MutationObserver catches it later
+        if (rect.width === 0 && rect.height === 0) {
+            return;
+        }
+
+        // Skip small icons (like read receipts, small avatars)
+        if (rect.width < 50 || rect.height < 50) {
+            img.setAttribute('data-sureanot-img-analyzed', 'true');
+            return;
+        }
+
+        img.setAttribute('data-sureanot-img-analyzed', 'true');
 
         // Build the chrome message once; the React component sends it internally
         let chromeMessage;
-        if (src.startsWith('blob:')) {
+        if (src.startsWith('blob:') || isTelegram) {
+            // For Telegram Web heavily reliant on blob URIs, prefer base64 conversion
+            // This is crucial as the blob: URL won't be accessible by our backend directly.
             const b64data = imgToBase64(img);
             if (!b64data) return; // tainted canvas — skip
             chromeMessage = { type: 'ANALYZE_IMAGE', imageB64: b64data.b64, mime: b64data.mime, alt, platform: platformName };
