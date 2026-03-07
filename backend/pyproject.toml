@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "exa-py>=2.7.0",
+    "clickhouse-connect>=0.13.0",
     "fastapi[standard]>=0.116.1",
     "openai>=2.26.0",
     "openai-agents>=0.10.5",

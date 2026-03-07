@@ -1,46 +1,17 @@
-const OPENAI_KEY = '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';
-const OPENAI_ENDPOINT = 'https://api.openai.com/v1/chat/completions';
-
-const SYSTEM_PROMPT = `You are SureBoh.ai, a fact-checking AI assistant specializing in Singapore misinformation. Analyze the provided text and return a JSON object (no markdown, just raw JSON) with this exact structure:
-{
-  "trust_score": <integer 0-100>,
-  "verdict": {
-    "en": "<one of: Verified | Unverified | Misleading | Scam>",
-    "zh": "<Chinese translation of verdict>",
-    "ms": "<Malay translation of verdict>"
-  },
-  "summary": {
-    "en": [
-      { "type": "<fake|real|info>", "text": "<concise point>" }
-    ],
-    "zh": [
-      { "type": "<fake|real|info>", "text": "<Chinese translation>" }
-    ],
-    "ms": [
-      { "type": "<fake|real|info>", "text": "<Malay translation>" }
-    ]
-  },
-  "sources": [
-    { "name": "<source name>", "icon": "<emoji>", "url": "<official URL if known, else omit>" }
-  ]
-}
-
-Rules & Persona:
-- You are decisive. If a claim matches a known news report, official government statement (e.g. SPF, MOH, MOT, Singapore Customs), or widely documented fact, mark it as **Verified** (Trust Score 80-100).
-- If a claim is clearly false or matches a known scam/misinformation pattern, mark it as **Misleading** or **Scam** (Trust Score 0-30).
-- Only use **Unverified** (Trust Score 40-70) if the claim is truly ambiguous, needs more info, or is a personal opinion/anecdote that cannot be fact-checked.
-- For news reports (like cigarette seizures at Changi, police arrests, etc.), if the details (location, numbers, dates) match official reports, **VEIRFY IT**.
-- Use type "fake" for the misinformation being claimed (if any), "real" for the correct fact, "info" for neutral observations.
-- Always include gov.sg sources or official news links (AsiaOne, Straits Times, Mothership) if they are mentioned or relevant.
-- Return ONLY valid JSON.`;
+// background.js - Analysis is now handled by the Python backend
 
 async function analyzeWithBackend(text, url = '') {
+    // Get user language preference from storage
+    const settings = await chrome.storage.sync.get(['kampungLang']);
+    const preferredLang = settings.kampungLang || 'en';
+
     const body = {
         content: text,
         source_url: url,
         type: 'article',
         from_user: null,
-        group_chat: false
+        group_chat: false,
+        preferred_lang: preferredLang
     };
 
     const res = await fetch('http://localhost:8000/api/check', {
@@ -58,14 +29,14 @@ async function analyzeWithBackend(text, url = '') {
     const data = await res.json();
 
     // Map backend response (FakeNewsAnalysisResult) to a concise UI format
-    let verdictEn = "Unverified";
+    let verdictEn = "Unverified / uncertain";
     let trustScore = 50;
 
     if (data.classification === "Likely accurate") {
-        verdictEn = "Verified";
+        verdictEn = "Likely accurate";
         trustScore = 95;
     } else if (data.classification === "Potentially misleading") {
-        verdictEn = "Misleading";
+        verdictEn = "Potentially misleading";
         trustScore = 15;
     }
 
@@ -74,62 +45,71 @@ async function analyzeWithBackend(text, url = '') {
     const summaryZh = [];
     const summaryMs = [];
 
-    // 1. Clear Verdict Explanation
+    // 1. Clear Verdict Explanation (Localized)
     if (data.explanation) {
         summaryEn.push({
             type: data.classification === "Likely accurate" ? 'real' : 'fake',
-            text: data.explanation.split('.')[0] + '.'
+            text: data.explanation
         });
     }
+    // Only populate if backend sent it (respecting optimization)
     if (data.zh?.explanation) {
         summaryZh.push({
             type: data.classification === "Likely accurate" ? 'real' : 'fake',
-            text: data.zh.explanation.split('。')[0] + '。'
+            text: data.zh.explanation
         });
     }
     if (data.ms?.explanation) {
         summaryMs.push({
             type: data.classification === "Likely accurate" ? 'real' : 'fake',
-            text: data.ms.explanation.split('.')[0] + '.'
+            text: data.ms.explanation
         });
     }
 
-    // 2. Supporting Evidence or Missing Context
+    // 2. Secondary Fields (English Only - Optimized for Speed)
     if (data.classification === "Likely accurate") {
-        if (data.supporting_evidence) summaryEn.push({ type: 'real', text: `Verified: ${data.supporting_evidence.slice(0, 100)}...` });
-        if (data.zh?.supporting_evidence) summaryZh.push({ type: 'real', text: `已验证: ${data.zh.supporting_evidence.slice(0, 100)}...` });
-        if (data.ms?.supporting_evidence) summaryMs.push({ type: 'real', text: `Disahkan: ${data.ms.supporting_evidence.slice(0, 100)}...` });
+        if (data.supporting_evidence) summaryEn.push({ type: 'real', text: `Verified: ${data.supporting_evidence}` });
     } else if (data.missing_context) {
-        summaryEn.push({ type: 'info', text: `Context needed: ${data.missing_context.split('\n')[0]}` });
-        if (data.zh?.missing_context) summaryZh.push({ type: 'info', text: `缺少背景: ${data.zh.missing_context.split('\n')[0]}` });
-        if (data.ms?.missing_context) summaryMs.push({ type: 'info', text: `Konteks diperlukan: ${data.ms.missing_context.split('\n')[0]}` });
+        summaryEn.push({ type: 'info', text: `Context needed: ${data.missing_context}` });
     }
 
-    // 3. Recommended Action
-    if (data.recommended_action) summaryEn.push({ type: 'info', text: `Action: ${data.recommended_action.split('.')[0]}.` });
-    if (data.zh?.recommended_action) summaryZh.push({ type: 'info', text: `建议: ${data.zh.recommended_action.split('。')[0]}。` });
-    if (data.ms?.recommended_action) summaryMs.push({ type: 'info', text: `Tindakan: ${data.ms.recommended_action.split('.')[0]}.` });
+    if (data.recommended_action) summaryEn.push({ type: 'info', text: `Action: ${data.recommended_action}` });
 
     return {
         trust_score: trustScore,
+        classification: data.classification,
+        confidence_level: data.confidence_level,
         verdict: {
-            en: verdictEn,
-            zh: verdictEn === "Verified" ? "已验证" : verdictEn === "Misleading" ? "误导性" : "未验证",
-            ms: verdictEn === "Verified" ? "Disahkan" : verdictEn === "Misleading" ? "Mengelirukan" : "Tidak Disahkan"
+            en: data.verdict || verdictEn,
+            zh: data.zh?.explanation ? (verdictEn === "Likely accurate" ? "基本准确" : verdictEn === "Potentially misleading" ? "可能含有误导性信息" : "未经证实 / 不确定") : null,
+            ms: data.ms?.explanation ? (verdictEn === "Likely accurate" ? "Mungkin tepat" : verdictEn === "Potentially misleading" ? "Mungkin mengelirukan" : "Tidak disahkan / tidak pasti") : null
         },
         summary: {
             en: summaryEn,
             zh: summaryZh,
             ms: summaryMs
         },
-        sources: data.source_credibility ? [{ name: data.source_credibility, icon: "🔍", url: url }] : []
+        sources: data.source_credibility ? [{ name: data.source_credibility, icon: "🔍", url: url }] : [],
+        original_explanation: data.explanation // Store for on-demand translation
     };
+}
+
+async function translateOnDemand(text, targetLang) {
+    const res = await fetch('http://localhost:8000/api/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, target_lang: targetLang })
+    });
+    if (!res.ok) throw new Error("Translation failed");
+    return await res.json();
 }
 
 // Fallback response for errors
 const errorFallback = {
     trust_score: 50,
-    verdict: { en: "Unverified", zh: "未验证", ms: "Tidak Disahkan" },
+    classification: "Unverified / uncertain",
+    confidence_level: "Low",
+    verdict: { en: "Unverified / uncertain", zh: "未经证实 / 不确定", ms: "Tidak disahkan / tidak pasti" },
     summary: {
         en: [{ type: 'info', text: "Analysis could not be completed. Please try again." }],
         zh: [{ type: 'info', text: "无法完成分析，请再试一次。" }],
@@ -148,6 +128,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             });
 
         return true; // indicates asynchronous response
+    } else if (request.type === 'TRANSLATE_RESULT') {
+        translateOnDemand(request.text, request.targetLang)
+            .then(result => sendResponse(result))
+            .catch(err => {
+                console.error('Translation failed:', err);
+                sendResponse({ explanation: "Error translating." });
+            });
+        return true;
     } else if (request.type === 'SUBMIT_VOTE') {
         const { vote, assessment } = request;
         const claimText = assessment?.verdict?.en || 'Unknown Claim';
@@ -161,10 +149,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 claim_text: claimText,
-                verdict: assessment?.verdict?.en,
-                trust_score: assessment?.trust_score,
-                vote: vote,
-                platform: platform
+                verdict: assessment?.classification || 'Unknown',
+                trust_score: assessment?.trust_score || 50,
+                vote: vote === 1 ? 'upvote' : 'downvote',
+                platform: platform,
+                url: assessment?.source_url || sender?.tab?.url || ''
             })
         })
             .then(res => res.json())
