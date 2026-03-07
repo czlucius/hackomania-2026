@@ -45,9 +45,10 @@ Core Criteria for Analysis:
 - Support healthy community discussion by being a neutral, evidence-based arbiter.
 
 Multi-language Requirement:
-- You will receive a `preferred_lang` (en, zh, ms).
+- You will receive a `preferred_lang` (en, zh, ms, ta).
 - ALWAYS provide the English fields (`explanation`, `verdict`, etc.).
-- ONLY provide the translation for `zh` or `ms` if it matches the `preferred_lang`. If `preferred_lang` is 'en', DO NOT provide `zh` or `ms`.
+- ONLY provide the translation for `zh`, `ms`, or `ta` if it matches the `preferred_lang`. If `preferred_lang` is `en`, set `zh`, `ms`, and `ta` to null.
+- For Tamil (`ta`), write in standard Tamil used in Singapore (Tamil Nadu Tamil is acceptable, avoid overly archaic vocabulary).
 - This is for performance optimization. Keep explanations concise (max 2 sentences).
 - If a translation is requested later via the `/translate` endpoint, you will handle it there.
 
@@ -110,6 +111,7 @@ class FakeNewsAnalysisResult(BaseModel):
     recommended_action: str
     zh: Translation | None = None
     ms: Translation | None = None
+    ta: Translation | None = None
     community_score: int | None = None
 
 
@@ -224,7 +226,12 @@ class TranslationRequest(BaseModel):
 
 @router.post("/translate")
 async def translate(request: TranslationRequest):
-    target_name = "Chinese (Singapore context)" if request.target_lang == 'zh' else "Malay (Singapore context)"
+    lang_map = {
+        'zh': 'Chinese (Singapore context)',
+        'ms': 'Malay (Singapore context)',
+        'ta': 'Tamil (Singapore Tamil context, standard written form)'
+    }
+    target_name = lang_map.get(request.target_lang, 'English')
     
     prompt = f"Translate the following fact-checking explanation into {target_name}. Ensure it sounds natural for a Singaporean audience:\n\n{request.text}"
     
