@@ -1,5 +1,14 @@
 // background.js - Analysis is now handled by the Python backend
 
+// ── Image analysis cache (per service-worker session) ─────────────────────
+const imageCache = new Map();
+
+function getImageCacheKey(imageUrl, imageB64) {
+    if (imageUrl) return 'url:' + imageUrl;
+    if (imageB64) return 'b64:' + imageB64.length + ':' + imageB64.substring(0, 120);
+    return null;
+}
+
 async function analyzeWithBackend(text, url = '') {
     // Get user language preference from storage
     const settings = await chrome.storage.sync.get(['kampungLang']);
@@ -172,17 +181,46 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         return true;
 
     } else if (request.type === 'ANALYZE_IMAGE') {
-        const { src, alt } = request;
-        let response = null;
-        const textToAnalyze = (src + " " + alt).toLowerCase();
-
-        if (textToAnalyze.includes('ai-generated') || textToAnalyze.includes('midjourney') || textToAnalyze.includes('deepfake')) {
-            response = { warning: "Potential AI-generated or manipulated image detected. Verify the source." };
-        } else if (textToAnalyze.includes('scam') || textToAnalyze.includes('phishing')) {
-            response = { warning: "This image contains patterns associated with known phishing campaigns." };
-        }
-
-        setTimeout(() => sendResponse(response), 800);
+        analyzeImageWithBackend(request.src, request.imageB64, request.mime, request.alt, request.platform)
+            .then(result => sendResponse(result))
+            .catch(err => {
+                console.error('Image analysis failed:', err);
+                sendResponse(null);
+            });
         return true;
     }
 });
+
+async function analyzeImageWithBackend(imageUrl, imageB64, mime, alt, platform) {
+    const cacheKey = getImageCacheKey(imageUrl, imageB64);
+    if (cacheKey && imageCache.has(cacheKey)) {
+        console.log('SureAnot.ai: Image cache hit');
+        return imageCache.get(cacheKey);
+    }
+
+    const body = {
+        context: alt || null,
+        platform: platform || null,
+    };
+
+    if (imageB64) {
+        body.image_b64 = imageB64;
+        body.image_mime = mime || 'image/jpeg';
+    } else if (imageUrl) {
+        body.image_url = imageUrl;
+    } else {
+        return null;
+    }
+
+    const res = await fetch('http://localhost:8000/api/image/check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+    });
+
+    if (!res.ok) throw new Error(`Image API error: ${res.status}`);
+    const result = await res.json();
+
+    if (cacheKey) imageCache.set(cacheKey, result);
+    return result;
+}

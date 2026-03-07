@@ -2,13 +2,14 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { InjectedOverlay } from './components/InjectedOverlay';
 import { AnalyzeManualButton } from './components/AnalyzeManualButton';
-import { ImageWarningBanner } from './components/ImageWarningBanner';
+import { ImageScanOverlay } from './components/ImageScanOverlay';
 import { SendGuardModal } from './components/SendGuardModal';
 import cssText from './index.css?inline';
 
 const isHWZ = window.location.hostname.includes('hardwarezone');
 const isTelegram = window.location.hostname.includes('telegram');
 const isWhatsApp = window.location.hostname.includes('whatsapp');
+const isInstagram = window.location.hostname.includes('instagram');
 const isReddit = window.location.hostname.includes('reddit') &&
     window.location.pathname.toLowerCase().match(/^\/r\/(singapore|asksingapore|singaporeraw)\b/);
 
@@ -17,6 +18,26 @@ if (isWhatsApp) platformName = 'WhatsApp';
 if (isHWZ) platformName = 'HardwareZone';
 if (isTelegram) platformName = 'Telegram Web';
 if (isReddit) platformName = 'Reddit';
+if (isInstagram) platformName = 'Instagram';
+
+// Convert a loaded <img> element to a base64 JPEG string via canvas.
+// Returns { b64, mime } or null if the canvas is tainted (cross-origin without CORS).
+function imgToBase64(img) {
+    try {
+        const MAX = 800;
+        const w = img.naturalWidth || img.width || MAX;
+        const h = img.naturalHeight || img.height || MAX;
+        const scale = Math.min(1, MAX / Math.max(w, h));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(w * scale);
+        canvas.height = Math.round(h * scale);
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
+        return { b64: dataUrl.split(',')[1], mime: 'image/jpeg' };
+    } catch (e) {
+        return null;
+    }
+}
 
 console.log(`SureAnot.ai Content Script Loaded! Listening for ${platformName} messages...`);
 
@@ -257,51 +278,58 @@ const scanDOM = () => {
         });
     }
 
-    // --- Image Scanning Logic (Cross-platform) ---
-    const images = document.querySelectorAll('img:not([data-sureanot-img-analyzed])');
+    // --- Image Scanning Logic (Cross-platform + Instagram) ---
+    // On Instagram, target post images specifically; elsewhere scan everything.
+    const imgSelector = isInstagram
+        ? 'article img:not([data-sureanot-img-analyzed]), ._aagt img:not([data-sureanot-img-analyzed])'
+        : 'img:not([data-sureanot-img-analyzed])';
+    const images = document.querySelectorAll(imgSelector);
     images.forEach(img => {
         img.setAttribute('data-sureanot-img-analyzed', 'true');
         const src = img.src || '';
         const alt = img.alt || '';
 
-        // Skip tiny base64 or purely UI icons
-        if (!src || src.startsWith('data:') || img.width < 100 || img.height < 100) return;
+        // Skip SVG data URIs, UI icons, and small images
+        if (!src || img.width < 100 || img.height < 100) return;
+        if (src.startsWith('data:image/svg') || (src.startsWith('data:') && !src.startsWith('data:image'))) return;
 
-        if (chrome?.runtime?.sendMessage) {
-            chrome.runtime.sendMessage({ type: 'ANALYZE_IMAGE', src, alt }, (response) => {
-                if (response && response.warning) {
-                    const parent = img.parentElement;
-                    if (!parent) return;
-
-                    if (getComputedStyle(parent).position === 'static') {
-                        parent.style.position = 'relative';
-                    }
-
-                    const container = document.createElement('div');
-                    // Style container so absolute children position contextually
-                    container.style.position = 'absolute';
-                    container.style.top = '0';
-                    container.style.left = '0';
-                    container.style.width = '100%';
-                    container.style.height = '100%';
-                    container.style.pointerEvents = 'none'; // let clicks pass through to the image
-                    container.style.zIndex = '50';
-
-                    parent.appendChild(container);
-
-                    const shadow = container.attachShadow({ mode: 'open' });
-                    const style = document.createElement('style');
-                    style.textContent = cssText;
-                    shadow.appendChild(style);
-
-                    const reactRoot = document.createElement('div');
-                    shadow.appendChild(reactRoot);
-
-                    const root = createRoot(reactRoot);
-                    root.render(<ImageWarningBanner message={response.warning} />);
-                }
-            });
+        // Build the chrome message once; the React component sends it internally
+        let chromeMessage;
+        if (src.startsWith('blob:')) {
+            const b64data = imgToBase64(img);
+            if (!b64data) return; // tainted canvas — skip
+            chromeMessage = { type: 'ANALYZE_IMAGE', imageB64: b64data.b64, mime: b64data.mime, alt, platform: platformName };
+        } else {
+            chromeMessage = { type: 'ANALYZE_IMAGE', src, alt, platform: platformName };
         }
+
+        const parent = img.parentElement;
+        if (!parent) return;
+        if (getComputedStyle(parent).position === 'static') {
+            parent.style.position = 'relative';
+        }
+
+        const container = document.createElement('div');
+        container.style.position = 'absolute';
+        container.style.top = '0';
+        container.style.left = '0';
+        container.style.width = '100%';
+        container.style.height = '100%';
+        container.style.pointerEvents = 'none';
+        container.style.zIndex = '50';
+
+        parent.appendChild(container);
+
+        const shadow = container.attachShadow({ mode: 'open' });
+        const style = document.createElement('style');
+        style.textContent = cssText;
+        shadow.appendChild(style);
+
+        const reactRoot = document.createElement('div');
+        shadow.appendChild(reactRoot);
+
+        const root = createRoot(reactRoot);
+        root.render(<ImageScanOverlay chromeMessage={chromeMessage} reactive={currentAnalysisMode === 'reactive'} />);
     });
 };
 
