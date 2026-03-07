@@ -83,9 +83,18 @@ export function ExplainabilityTooltip({ children, assessment }) {
                         <span className="text-xs text-gray-400 font-medium">Sources:</span>
                         {assessment?.sources?.length > 0 ? (
                             <div className="flex gap-1">
-                                {assessment.sources.map((src, i) => (
-                                    <span key={i} title={src.name} className="text-lg cursor-help bg-gray-50 rounded p-1">{src.icon}</span>
-                                ))}
+                                {assessment.sources.map((src, i) => {
+                                    if (src.url) {
+                                        return (
+                                            <a key={i} href={src.url} target="_blank" rel="noopener noreferrer" title={src.name} className="text-lg cursor-pointer bg-gray-50 rounded p-1 hover:bg-gray-100 transition-colors">
+                                                {src.icon}
+                                            </a>
+                                        );
+                                    }
+                                    return (
+                                        <span key={i} title={src.name} className="text-lg cursor-help bg-gray-50 rounded p-1">{src.icon}</span>
+                                    );
+                                })}
                             </div>
                         ) : (
                             <span className="text-xs text-gray-500 italic">None</span>

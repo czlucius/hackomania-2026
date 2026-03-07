@@ -19,7 +19,10 @@ export function InjectedOverlay({ text }) {
                 trust_score: 40,
                 verdict: { en: "Unverified" },
                 summary: { en: ["Test mock data"] },
-                sources: []
+                sources: [
+                    { name: "Singapore Police Force", icon: "👮", url: "https://www.police.gov.sg/" },
+                    { name: "ScamShield", icon: "🛡️", url: "https://www.scamshield.org.sg/" }
+                ]
             });
             setLoading(false);
         }
