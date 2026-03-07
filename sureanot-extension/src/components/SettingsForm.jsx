@@ -113,7 +113,7 @@ export function SettingsForm({ isOnboarding = false, onComplete }) {
                     <Globe className="w-4 h-4 text-indigo-500" />
                     <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Display Language</h3>
                 </div>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     {LANG_OPTIONS.map(lang => (
                         <button
                             key={lang.value}
