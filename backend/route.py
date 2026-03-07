@@ -64,6 +64,8 @@ class FakeNewsAnalysisResult(BaseModel):
     ms: Translation
 
 
+analysis_cache = {}
+
 @router.post("/check")
 async def check(user_request: InputFormat):
     # Preformulate the input prompt based on the user request
@@ -72,6 +74,12 @@ async def check(user_request: InputFormat):
     content = user_request.get("content", "")
     from_user = user_request.get("from_user", "")
     group_chat = user_request.get("group_chat", "")
+
+    # Check cache first
+    content_hash = hashlib.sha256(content.encode('utf-8')).hexdigest()
+    if content_hash in analysis_cache:
+        logger.info(f"Cache hit for content hash: {content_hash}")
+        return analysis_cache[content_hash]
 
     prompt_parts = [
         f"Please analyze the following {content_type} for fake news and misinformation:",
@@ -96,18 +104,6 @@ async def check(user_request: InputFormat):
     input_prompt = "\n".join(prompt_parts)
 
     try:
-        """
-
-            model="gpt-5.2",  # Using a model that supports structured outputs
-            messages=[
-                {"role": "system", "content": SYSTEM_INSTRUCTIONS},
-                {"role": "user", "content": input_prompt},
-            ],
-            output_type=FakeNewsAnalysisResult,
-            temperature=0.7,
-            tools=[
-                {type: "web_search"},
-            ],"""
         # Use OpenAI SDK with structured outputs
         completion = openai_client.beta.chat.completions.parse(
             model="gpt-4o-mini",
@@ -121,6 +117,9 @@ async def check(user_request: InputFormat):
         # Extract the parsed response
         result = completion.choices[0].message.parsed
         logger.info(f"Analysis completed: {completion.choices[0].message.content}")
+
+        # Save to cache
+        analysis_cache[content_hash] = result
 
         return result
 
