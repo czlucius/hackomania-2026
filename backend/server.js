@@ -12,7 +12,7 @@ app.use(express.json());
 // Main telemetry endpoint for votes
 app.post('/api/telemetry/vote', async (req, res) => {
     try {
-        const { claim_text, verdict, trust_score, vote, platform } = req.body;
+        const { claim_text, verdict, trust_score, vote, platform, classification, confidence_level } = req.body;
 
         if (!claim_text || vote === undefined) {
             return res.status(400).json({ error: 'Missing required fields' });
@@ -24,7 +24,9 @@ app.post('/api/telemetry/vote', async (req, res) => {
             String(verdict || 'unknown'),
             Number(trust_score || 0),
             Number(vote),
-            String(platform || 'unknown')
+            String(platform || 'unknown'),
+            String(classification || ''),
+            String(confidence_level || '')
         );
 
         res.status(200).json({ success: true, message: 'Vote recorded' });

@@ -20,7 +20,9 @@ async function initDB() {
           verdict String,
           trust_score Int32,
           vote Int8,
-          platform String DEFAULT 'unknown'
+          platform String DEFAULT 'unknown',
+          classification String DEFAULT '',
+          confidence_level String DEFAULT ''
         ) ENGINE = MergeTree()
         ORDER BY (timestamp, id);
       `
@@ -31,7 +33,7 @@ async function initDB() {
     }
 }
 
-async function insertVote(claimText, verdict, trustScore, vote, platform) {
+async function insertVote(claimText, verdict, trustScore, vote, platform, classification, confidenceLevel) {
     try {
         await client.insert({
             table: 'assessment_votes',
@@ -41,7 +43,9 @@ async function insertVote(claimText, verdict, trustScore, vote, platform) {
                     verdict: verdict,
                     trust_score: trustScore,
                     vote: vote,
-                    platform: platform
+                    platform: platform,
+                    classification: classification || '',
+                    confidence_level: confidenceLevel || ''
                 }
             ],
             format: 'JSONEachRow'
