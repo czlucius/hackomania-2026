@@ -56,6 +56,18 @@ async def check_image(request: ImageCheckRequest):
     if not request.image_url and not request.image_b64:
         raise HTTPException(status_code=400, detail="Either image_url or image_b64 is required")
 
+    if not request.image_b64 and request.image_url:
+        try:
+            import httpx
+            import base64
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(request.image_url)
+                resp.raise_for_status()
+                request.image_b64 = base64.b64encode(resp.content).decode("utf-8")
+                request.image_mime = resp.headers.get("content-type", "image/jpeg")
+        except Exception as e:
+            logger.warning(f"Failed to fetch image URL in backend, falling back to URL: {e}")
+
     if request.image_b64:
         mime = request.image_mime or "image/jpeg"
         image_content = {
@@ -66,6 +78,7 @@ async def check_image(request: ImageCheckRequest):
             },
         }
     else:
+        # Fallback if the URL couldn't be fetched and no base64 was provided originally
         image_content = {
             "type": "image_url",
             "image_url": {"url": request.image_url, "detail": "low"},
