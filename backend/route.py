@@ -28,11 +28,17 @@ Analysis Logic:
 - Link to gov.sg or official channels if possible in the explanation.
 """
 
+import sys
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+handler = logging.StreamHandler(sys.stdout)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+logger.setLevel(logging.INFO)
 
 router = APIRouter()
-
 
 class InputFormat(TypedDict):
     source_url: str
@@ -175,15 +181,22 @@ async def submit_vote(request: VoteRequest):
         downvote_delta = 1 if request.vote == 'downvote' else 0
         
         # Check if domain exists
-        res = ch_client.query(f"SELECT url FROM links WHERE domain = '{domain}' LIMIT 1")
+        select_query = f"SELECT url FROM links WHERE domain = '{domain}' LIMIT 1"
+        logger.info(f"Executing SQL: {select_query}")
+        res = ch_client.query(select_query)
+        
         if len(res.result_rows) > 0:
             # Edit existing domain stats (ignoring updated_at as it's a key column in ReplacingMergeTree)
             if request.vote == 'upvote':
-                ch_client.command(f"ALTER TABLE links UPDATE upvotes = upvotes + 1, score = score + 1 WHERE domain = '{domain}'")
+                update_query = f"ALTER TABLE links UPDATE upvotes = upvotes + 1, score = score + 1 WHERE domain = '{domain}'"
             else:
-                ch_client.command(f"ALTER TABLE links UPDATE downvotes = downvotes + 1, score = score - 1 WHERE domain = '{domain}'")
+                update_query = f"ALTER TABLE links UPDATE downvotes = downvotes + 1, score = score - 1 WHERE domain = '{domain}'"
+            
+            logger.info(f"Executing SQL: {update_query}")
+            ch_client.command(update_query)
         else:
             # Insert new domain
+            logger.info("Executing SQL: INSERT INTO links (url, url_hash, domain, score, upvotes, downvotes, submitted_by, created_at, updated_at)")
             ch_client.insert('links', [[
                 request.url, url_hash, domain, score_delta, upvote_delta, downvote_delta, 'system', datetime.datetime.now(), datetime.datetime.now()
             ]], column_names=['url', 'url_hash', 'domain', 'score', 'upvotes', 'downvotes', 'submitted_by', 'created_at', 'updated_at'])
