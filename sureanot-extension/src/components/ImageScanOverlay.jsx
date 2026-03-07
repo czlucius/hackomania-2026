@@ -4,6 +4,9 @@ import { AlertTriangle, CheckCircle2, ScanSearch } from 'lucide-react';
 export function ImageScanOverlay({ chromeMessage, reactive }) {
     const [state, setState] = useState(reactive ? 'idle' : 'loading');
     const [result, setResult] = useState(null);
+    const [isHovered, setIsHovered] = useState(false);
+
+    const isTelegram = chromeMessage?.platform === 'Telegram Web';
 
     useEffect(() => {
         if (state !== 'loading') return;
@@ -15,16 +18,10 @@ export function ImageScanOverlay({ chromeMessage, reactive }) {
                 setResult(response);
                 setState('flagged');
             } else {
+                setResult({ classification: 'safe', explanation: 'No AI generation or manipulation detected.' });
                 setState('safe');
             }
         });
-    }, [state]);
-
-    // Auto-dismiss safe badge after 3 s
-    useEffect(() => {
-        if (state !== 'safe') return;
-        const t = setTimeout(() => setState('idle'), 3000);
-        return () => clearTimeout(t);
     }, [state]);
 
     if (state === 'idle' && !reactive) return null;
@@ -32,7 +29,7 @@ export function ImageScanOverlay({ chromeMessage, reactive }) {
     // Reactive idle: small "Check Image" button bottom-left of the image
     if (state === 'idle') {
         return (
-            <div className="absolute bottom-2 left-2 z-50" style={{ pointerEvents: 'auto' }}>
+            <div className="absolute bottom-2 left-2 z-50 pointer-events-auto">
                 <button
                     onClick={() => setState('loading')}
                     className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-sm text-white text-[11px] font-semibold hover:bg-black/90 transition-colors border border-white/20 shadow"
@@ -52,41 +49,43 @@ export function ImageScanOverlay({ chromeMessage, reactive }) {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
-                    <span className="text-[11px] font-medium">Scanning image…</span>
+                    <span className="text-[11px] font-medium">Scanning…</span>
                 </div>
             </div>
         );
     }
 
-    if (state === 'safe') {
-        return (
-            <div className="absolute top-2 left-2 z-50 pointer-events-none">
-                <div className="flex items-center gap-1.5 bg-green-900/80 backdrop-blur-sm text-white px-2.5 py-1 rounded-full border border-green-500/40 shadow">
-                    <CheckCircle2 className="w-3 h-3 text-green-300" />
-                    <span className="text-[11px] font-medium">Image looks safe</span>
-                </div>
-            </div>
-        );
-    }
+    const isManipulated = result?.classification === 'manipulated';
+    const bgColor = state === 'safe' ? 'bg-green-900/90 border-green-500/50' : (isManipulated ? 'bg-purple-900/90 border-purple-500/50' : 'bg-red-900/90 border-red-500/50');
+    const TextColor = state === 'safe' ? 'text-green-300' : (isManipulated ? 'text-purple-300' : 'text-red-300');
+    const Icon = state === 'safe' ? CheckCircle2 : AlertTriangle;
 
-    if (state === 'flagged') {
-        return (
-            <div className="absolute top-2 left-2 right-2 z-50" style={{ pointerEvents: 'auto' }}>
-                <div className="bg-red-900/90 backdrop-blur-sm border border-red-500/50 text-white px-3 py-2 rounded-lg shadow-lg flex items-start gap-2 max-w-sm">
-                    <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-red-200" />
-                    <div className="flex flex-col gap-0.5">
-                        <span className="text-xs font-bold tracking-tight">
-                            Image Alert
-                            {result?.classification && result.classification !== 'safe' && (
-                                <span className="ml-1.5 font-normal opacity-75 capitalize">· {result.classification.replace(/_/g, ' ')}</span>
-                            )}
+    let shortLabel = state === 'safe' ? 'Authentic' : (isManipulated ? 'AI Generated' : 'Flagged');
+    let detailedLabel = state === 'safe'
+        ? 'Likely Authentic / Not AI'
+        : (isManipulated ? 'Likely AI-Generated' : 'Potentially Misleading');
+
+    return (
+        <div
+            className="absolute top-2 left-2 right-2 flex pointer-events-none z-50"
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+        >
+            <div
+                className={`flex items-start gap-2 backdrop-blur-sm border px-2.5 py-1.5 rounded-lg shadow-lg pointer-events-auto cursor-default transition-all duration-300 ${bgColor} text-white max-w-sm overflow-hidden`}
+            >
+                <Icon className={`w-4 h-4 shrink-0 mt-0.5 ${TextColor}`} />
+                <div className="flex flex-col gap-0.5 overflow-hidden">
+                    <span className="text-xs font-bold tracking-tight whitespace-nowrap">
+                        {isHovered ? detailedLabel : shortLabel}
+                    </span>
+                    {isHovered && result?.explanation && (
+                        <span className="text-[11px] font-medium leading-snug opacity-90 mt-1 pb-0.5" style={{ whiteSpace: 'normal', wordWrap: 'break-word', display: 'block', minWidth: '150px' }}>
+                            {result.explanation}
                         </span>
-                        <span className="text-[11px] text-red-100 font-medium leading-snug">{result?.warning || result?.explanation}</span>
-                    </div>
+                    )}
                 </div>
             </div>
-        );
-    }
-
-    return null;
+        </div>
+    );
 }
