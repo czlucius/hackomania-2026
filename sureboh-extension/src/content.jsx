@@ -107,7 +107,7 @@ const scanDOM = () => {
             // Combined context for AI
             const analysisPayload = `Thread Title: ${threadTitle}\n\nPost Content: ${rawText}${linkContext}`;
 
-            const currentPostIndex = alreadyAnalyizedCount + index;
+            const currentPostIndex = alreadyAnalyzedCount + index;
             post.setAttribute('data-sureboh-analyzed', 'true');
 
             if (getComputedStyle(post).position === 'static') {

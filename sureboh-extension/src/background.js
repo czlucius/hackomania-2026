@@ -34,37 +34,61 @@ Rules & Persona:
 - Always include gov.sg sources or official news links (AsiaOne, Straits Times, Mothership) if they are mentioned or relevant.
 - Return ONLY valid JSON.`;
 
-async function analyzeWithOpenAI(text) {
+async function analyzeWithBackend(text, url = '') {
     const body = {
-        model: 'gpt-4o-mini',
-        temperature: 0.2,
-        max_tokens: 1024,
-        messages: [
-            { role: 'system', content: SYSTEM_PROMPT },
-            { role: 'user', content: `Text to analyze:\n"${text}"` }
-        ],
-        response_format: { type: 'json_object' }
+        content: text,
+        source_url: url,
+        type: 'article',
+        from_user: null,
+        group_chat: false
     };
 
-    const res = await fetch(OPENAI_ENDPOINT, {
+    const res = await fetch('http://localhost:8000/api/check', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${OPENAI_KEY}`
+            'Content-Type': 'application/json'
         },
         body: JSON.stringify(body)
     });
 
     if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(`OpenAI API error: ${res.status} - ${err?.error?.message || res.statusText}`);
+        throw new Error(`Backend API error: ${res.status}`);
     }
 
     const data = await res.json();
-    const rawText = data?.choices?.[0]?.message?.content;
-    if (!rawText) throw new Error('No response from OpenAI');
 
-    return JSON.parse(rawText);
+    // Map backend response (FakeNewsAnalysisResult) to extension format
+    // Backend classifications: "Likely accurate", "Unverified / uncertain", "Potentially misleading"
+    let verdictEn = "Unverified";
+    let trustScore = 50;
+
+    if (data.classification === "Likely accurate") {
+        verdictEn = "Verified";
+        trustScore = 90;
+    } else if (data.classification === "Potentially misleading") {
+        verdictEn = "Misleading";
+        trustScore = 25;
+    }
+
+    const summaryEn = [];
+    if (data.explanation) summaryEn.push({ type: 'info', text: data.explanation });
+    if (data.supporting_evidence) summaryEn.push({ type: 'real', text: `Evidence: ${data.supporting_evidence}` });
+    if (data.missing_context) summaryEn.push({ type: 'info', text: `Note: ${data.missing_context}` });
+
+    return {
+        trust_score: trustScore,
+        verdict: {
+            en: verdictEn,
+            zh: verdictEn === "Verified" ? "已验证" : verdictEn === "Misleading" ? "误导性" : "未验证",
+            ms: verdictEn === "Verified" ? "Disahkan" : verdictEn === "Misleading" ? "Mengelirukan" : "Tidak Disahkan"
+        },
+        summary: {
+            en: summaryEn,
+            zh: summaryEn.map(s => ({ ...s, text: `[ZH] ${s.text}` })), // Placeholder translations
+            ms: summaryEn.map(s => ({ ...s, text: `[MS] ${s.text}` }))
+        },
+        sources: data.source_credibility ? [{ name: data.source_credibility, icon: "🔍" }] : []
+    };
 }
 
 // Fallback response for errors
@@ -81,15 +105,14 @@ const errorFallback = {
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.type === 'ANALYZE_MESSAGE') {
-        analyzeWithOpenAI(request.text)
+        analyzeWithBackend(request.text, sender?.tab?.url)
             .then(result => sendResponse(result))
             .catch(err => {
-                console.error('OpenAI analysis failed:', err);
+                console.error('Backend analysis failed:', err);
                 sendResponse(errorFallback);
             });
 
         return true; // indicates asynchronous response
-
     } else if (request.type === 'SUBMIT_VOTE') {
         const { vote, assessment } = request;
         const claimText = assessment?.verdict?.en || 'Unknown Claim';
