@@ -1,5 +1,5 @@
-const GEMINI_API_KEY = 'AIzaSyAwOFS6SgzuHfzfvSqWcjbVdTMiZXagSi8';
-const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+const OPENAI_KEY = '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';
+const OPENAI_ENDPOINT = 'https://api.openai.com/v1/chat/completions';
 
 const SYSTEM_PROMPT = `You are SureBoh.ai, a fact-checking AI assistant specializing in Singapore misinformation. Analyze the provided text and return a JSON object (no markdown, just raw JSON) with this exact structure:
 {
@@ -33,38 +33,37 @@ Rules:
 - Always include gov.sg sources if relevant.
 - Return ONLY valid JSON, no explanation, no markdown code fences.`;
 
-async function analyzeWithGemini(text) {
+async function analyzeWithOpenAI(text) {
     const body = {
-        contents: [
-            {
-                role: "user",
-                parts: [{ text: `${SYSTEM_PROMPT}\n\nText to analyze:\n"${text}"` }]
-            }
+        model: 'gpt-4o-mini',
+        temperature: 0.2,
+        max_tokens: 1024,
+        messages: [
+            { role: 'system', content: SYSTEM_PROMPT },
+            { role: 'user', content: `Text to analyze:\n"${text}"` }
         ],
-        generationConfig: {
-            temperature: 0.2,
-            maxOutputTokens: 1024
-        }
+        response_format: { type: 'json_object' }
     };
 
-    const res = await fetch(GEMINI_ENDPOINT, {
+    const res = await fetch(OPENAI_ENDPOINT, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${OPENAI_KEY}`
+        },
         body: JSON.stringify(body)
     });
 
     if (!res.ok) {
-        throw new Error(`Gemini API error: ${res.status} ${res.statusText}`);
+        const err = await res.json().catch(() => ({}));
+        throw new Error(`OpenAI API error: ${res.status} - ${err?.error?.message || res.statusText}`);
     }
 
     const data = await res.json();
-    const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    const rawText = data?.choices?.[0]?.message?.content;
+    if (!rawText) throw new Error('No response from OpenAI');
 
-    if (!rawText) throw new Error('No response from Gemini');
-
-    // Strip any accidental markdown code fences
-    const cleaned = rawText.replace(/```json\n?/gi, '').replace(/```\n?/g, '').trim();
-    return JSON.parse(cleaned);
+    return JSON.parse(rawText);
 }
 
 // Fallback response for errors
@@ -81,10 +80,10 @@ const errorFallback = {
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.type === 'ANALYZE_MESSAGE') {
-        analyzeWithGemini(request.text)
+        analyzeWithOpenAI(request.text)
             .then(result => sendResponse(result))
             .catch(err => {
-                console.error('Gemini analysis failed:', err);
+                console.error('OpenAI analysis failed:', err);
                 sendResponse(errorFallback);
             });
 
