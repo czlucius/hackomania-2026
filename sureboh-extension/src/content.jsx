@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { InjectedOverlay } from './components/InjectedOverlay';
 import { AnalyzeManualButton } from './components/AnalyzeManualButton';
 import { ImageWarningBanner } from './components/ImageWarningBanner';
+import { SendGuardModal } from './components/SendGuardModal';
 import cssText from './index.css?inline';
 
 const isHWZ = window.location.hostname.includes('hardwarezone');
@@ -325,3 +326,267 @@ observer.observe(document.body, {
     childList: true,
     subtree: true
 });
+
+// ---------------------------------------------------------------------------
+// Send Guard — intercepts send actions on WhatsApp & Telegram
+// Proactive mode : intercepts the send button / Enter key, shows warning modal.
+// Reactive mode  : injects a "Check before sending" button next to the send
+//                  button without touching the real send at all.
+// ---------------------------------------------------------------------------
+if ((isWhatsApp || isTelegram) && chrome?.runtime?.sendMessage) {
+    let guardRoot = null;
+    let bypassGuard = false;
+
+    // ── Shared helpers ──────────────────────────────────────────────────────
+
+    function getGuardMount() {
+        const existing = document.getElementById('sureanot-send-guard-host');
+        if (existing) return existing._reactMount;
+
+        const host = document.createElement('div');
+        host.id = 'sureanot-send-guard-host';
+        host.style.cssText = 'position:fixed;top:0;left:0;width:0;height:0;overflow:visible;z-index:2147483647;pointer-events:none;';
+        document.body.appendChild(host);
+
+        const shadow = host.attachShadow({ mode: 'open' });
+        const style = document.createElement('style');
+        style.textContent = cssText;
+        shadow.appendChild(style);
+
+        const mount = document.createElement('div');
+        mount.style.cssText = 'width:0;height:0;overflow:visible;';
+        shadow.appendChild(mount);
+
+        host._reactMount = mount;
+        return mount;
+    }
+
+    function showGuard(assessment, onProceed, onCancel) {
+        if (!guardRoot) guardRoot = createRoot(getGuardMount());
+        guardRoot.render(
+            <SendGuardModal
+                assessment={assessment}
+                onSendAnyway={onProceed}
+                onCancel={onCancel}
+            />
+        );
+    }
+
+    function hideGuard() {
+        guardRoot?.render(null);
+    }
+
+    function getComposedText() {
+        if (isWhatsApp) {
+            const el =
+                document.querySelector('[contenteditable="true"][data-tab]') ||
+                document.querySelector('.selectable-text.copyable-text[contenteditable="true"]');
+            return (el?.innerText || el?.textContent || '').trim();
+        }
+        if (isTelegram) {
+            const el =
+                document.querySelector('.input-message-input[contenteditable="true"]') ||
+                document.querySelector('[contenteditable="true"].input-field-input');
+            return (el?.innerText || el?.textContent || '').trim();
+        }
+        return '';
+    }
+
+    function triggerSend() {
+        bypassGuard = true;
+        if (isWhatsApp) {
+            const btn =
+                document.querySelector('[data-testid="send"]') ||
+                document.querySelector('button[aria-label="Send"]');
+            if (btn) { btn.click(); return; }
+        }
+        if (isTelegram) {
+            const btn = document.querySelector('.btn-send');
+            if (btn) { btn.click(); return; }
+        }
+        // Fallback: dispatch Enter on the compose input
+        const input =
+            document.querySelector('[contenteditable="true"][data-tab]') ||
+            document.querySelector('.selectable-text.copyable-text[contenteditable="true"]') ||
+            document.querySelector('.input-message-input[contenteditable="true"]');
+        if (input) {
+            input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', keyCode: 13, bubbles: true, cancelable: true }));
+        }
+    }
+
+    async function guardSend(text) {
+        // Show loading state immediately
+        showGuard(null, () => { hideGuard(); triggerSend(); }, hideGuard);
+
+        try {
+            const result = await new Promise((resolve, reject) => {
+                chrome.runtime.sendMessage({ type: 'ANALYZE_MESSAGE', text }, (response) => {
+                    if (chrome.runtime.lastError) reject(chrome.runtime.lastError);
+                    else resolve(response);
+                });
+            });
+
+            if (result.trust_score < 40) {
+                showGuard(result, () => { hideGuard(); triggerSend(); }, hideGuard);
+            } else {
+                hideGuard();
+                triggerSend();
+            }
+        } catch (e) {
+            console.warn('SureAnot.ai: Send guard analysis failed, allowing send.', e);
+            hideGuard();
+            triggerSend();
+        }
+    }
+
+    // ── Proactive mode: intercept the send button / Enter ───────────────────
+
+    function onSendClick(e) {
+        if (currentAnalysisMode !== 'proactive') return;
+        if (bypassGuard) { bypassGuard = false; return; }
+
+        const sendBtn = e.target.closest(
+            '[data-testid="send"], button[aria-label="Send"], .btn-send, [data-testid="compose-btn-send"]'
+        );
+        if (!sendBtn) return;
+
+        const text = getComposedText();
+        if (!text || text.length < 10) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+        guardSend(text);
+    }
+
+    function onEnterKey(e) {
+        if (currentAnalysisMode !== 'proactive') return;
+        if (e.key !== 'Enter' || e.shiftKey) return;
+        if (bypassGuard) { bypassGuard = false; return; }
+
+        const composable = e.target.closest('[contenteditable="true"]');
+        if (!composable) return;
+
+        const inBubble = e.target.closest(
+            '.message-in, .message-out, .bubbles-inner, .message, .message-list-item'
+        );
+        if (inBubble) return;
+
+        const text = getComposedText();
+        if (!text || text.length < 10) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+        guardSend(text);
+    }
+
+    document.addEventListener('click', onSendClick, true);
+    document.addEventListener('keydown', onEnterKey, true);
+
+    // ── Reactive mode: inject "Check before sending" button ─────────────────
+
+    const REACTIVE_BTN_ID = 'sureanot-check-btn';
+
+    function getSendButton() {
+        return (
+            document.querySelector('[data-testid="send"]') ||
+            document.querySelector('button[aria-label="Send"]') ||
+            document.querySelector('.btn-send')
+        );
+    }
+
+    function removeReactiveButton() {
+        document.getElementById(REACTIVE_BTN_ID)?.remove();
+    }
+
+    function positionReactiveButton() {
+        const btn = document.getElementById(REACTIVE_BTN_ID);
+        const sendBtn = getSendButton();
+        if (!btn || !sendBtn) return;
+        const r = sendBtn.getBoundingClientRect();
+        const btnWidth = btn.offsetWidth || 90;
+        btn.style.top = `${r.top + r.height / 2 - 18}px`;
+        btn.style.left = `${r.left - btnWidth - 8}px`;
+    }
+
+    function injectReactiveButton() {
+        if (document.getElementById(REACTIVE_BTN_ID)) {
+            positionReactiveButton();
+            return;
+        }
+
+        const sendBtn = getSendButton();
+        if (!sendBtn) return;
+
+        const btn = document.createElement('button');
+        btn.id = REACTIVE_BTN_ID;
+        btn.title = 'Check with SureAnot.ai before sending';
+        btn.style.cssText = [
+            'position:fixed',
+            'display:inline-flex',
+            'align-items:center',
+            'justify-content:center',
+            'gap:5px',
+            'padding:0 12px',
+            'height:36px',
+            'border-radius:18px',
+            'border:1.5px solid #f97316',
+            'background:#fff7ed',
+            'color:#c2410c',
+            'font-size:12px',
+            'font-weight:600',
+            'font-family:sans-serif',
+            'cursor:pointer',
+            'white-space:nowrap',
+            'z-index:2147483640',
+            'box-sizing:border-box',
+            'box-shadow:0 2px 8px rgba(0,0,0,0.15)',
+            'pointer-events:auto',
+        ].join(';');
+
+        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Check`;
+
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const text = getComposedText();
+            if (!text || text.length < 10) return;
+            guardSend(text);
+        });
+
+        document.body.appendChild(btn);
+        // Position after appending so offsetWidth is available
+        requestAnimationFrame(positionReactiveButton);
+    }
+
+    function syncReactiveButton() {
+        if (currentAnalysisMode === 'reactive') {
+            injectReactiveButton();
+        } else {
+            removeReactiveButton();
+        }
+    }
+
+    // Re-position on any DOM change or scroll/resize
+    const guardObserver = new MutationObserver(() => {
+        syncReactiveButton();
+        positionReactiveButton();
+    });
+    guardObserver.observe(document.body, { childList: true, subtree: true });
+    window.addEventListener('resize', positionReactiveButton);
+    window.addEventListener('scroll', positionReactiveButton, true);
+
+    // Also re-sync when the mode changes at runtime
+    if (chrome?.storage?.onChanged) {
+        chrome.storage.onChanged.addListener((changes, namespace) => {
+            if (namespace === 'sync' && changes.analysisMode) {
+                currentAnalysisMode = changes.analysisMode.newValue;
+                syncReactiveButton();
+            }
+        });
+    }
+
+    // Initial injection if already in reactive mode
+    setTimeout(syncReactiveButton, 1200);
+
+    console.log(`SureAnot.ai: Send guard active for ${platformName}.`);
+}
