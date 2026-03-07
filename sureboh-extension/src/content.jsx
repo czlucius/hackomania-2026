@@ -86,10 +86,17 @@ const scanDOM = () => {
         const posts = document.querySelectorAll('.post-content:not([data-sureboh-analyzed]), .bbWrapper:not([data-sureboh-analyzed])');
         console.log(`SureBoh.ai: Found ${posts.length} unanalyzed HWZ posts.`);
 
+        // Extract Thread Title for context
+        const threadTitle = document.querySelector('h1.p-title-value')?.innerText || document.title || '';
+
         // Determine if there are already analyzed posts on this page to correctly sequence
         const alreadyAnalyzedCount = document.querySelectorAll('[data-sureboh-analyzed="true"]').length;
 
         posts.forEach((post, index) => {
+            // Extract text but also include full URLs if they exist
+            const links = Array.from(post.querySelectorAll('a')).map(a => a.href).filter(href => href && !href.includes('javascript:'));
+            const linkContext = links.length > 0 ? `\n\nLinks found in post:\n${links.join('\n')}` : '';
+
             const rawText = (post.innerText || post.textContent || '').trim();
             if (rawText.length < 20) {
                 console.log("SureBoh.ai: Skipping short post:", rawText.slice(0, 20));
@@ -97,7 +104,10 @@ const scanDOM = () => {
                 return;
             }
 
-            const currentPostIndex = alreadyAnalyzedCount + index;
+            // Combined context for AI
+            const analysisPayload = `Thread Title: ${threadTitle}\n\nPost Content: ${rawText}${linkContext}`;
+
+            const currentPostIndex = alreadyAnalyizedCount + index;
             post.setAttribute('data-sureboh-analyzed', 'true');
 
             if (getComputedStyle(post).position === 'static') {
@@ -129,10 +139,10 @@ const scanDOM = () => {
             // Logic: Auto-analyze the first post (index 0), rest are manual
             if (currentPostIndex === 0) {
                 console.log("SureBoh.ai: Auto-analyzing first HWZ post.");
-                root.render(<InjectedOverlay text={rawText} />);
+                root.render(<InjectedOverlay text={analysisPayload} />);
             } else {
                 console.log(`SureBoh.ai: Adding manual button for HWZ post #${currentPostIndex + 1}.`);
-                root.render(<AnalyzeManualButton text={rawText} />);
+                root.render(<AnalyzeManualButton text={analysisPayload} />);
             }
         });
     }
