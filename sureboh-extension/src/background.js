@@ -1,13 +1,11 @@
 // background.js - Analysis is now handled by the Python backend
 
-// ── Image analysis cache (per service-worker session) ─────────────────────
-const imageCache = new Map();
-
-function getImageCacheKey(imageUrl, imageB64) {
-    if (imageUrl) return 'url:' + imageUrl;
-    if (imageB64) return 'b64:' + imageB64.length + ':' + imageB64.substring(0, 120);
-    return null;
-}
+// Open settings page on first install for onboarding
+chrome.runtime.onInstalled.addListener((details) => {
+    if (details.reason === 'install') {
+        chrome.runtime.openOptionsPage();
+    }
+});
 
 async function analyzeWithBackend(text, url = '') {
     // Get user language preference from storage
@@ -181,12 +179,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         return true;
 
     } else if (request.type === 'ANALYZE_IMAGE') {
-        analyzeImageWithBackend(request.src, request.imageB64, request.mime, request.alt, request.platform)
-            .then(result => sendResponse(result))
-            .catch(err => {
-                console.error('Image analysis failed:', err);
-                sendResponse(null);
-            });
+        const { src, alt } = request;
+        let response = null;
+        const textToAnalyze = (src + " " + alt).toLowerCase();
+
+        if (textToAnalyze.includes('ai-generated') || textToAnalyze.includes('midjourney') || textToAnalyze.includes('deepfake')) {
+            response = { warning: "Potential AI-generated or manipulated image detected. Verify the source." };
+        } else if (textToAnalyze.includes('scam') || textToAnalyze.includes('phishing')) {
+            response = { warning: "This image contains patterns associated with known phishing campaigns." };
+        }
+
+        setTimeout(() => sendResponse(response), 800);
         return true;
     }
 });

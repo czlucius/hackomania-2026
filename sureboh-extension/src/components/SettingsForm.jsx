@@ -1,157 +1,152 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Shield, Globe, Zap } from 'lucide-react';
+import { Shield, Globe, Zap, CheckCircle2, ChevronRight } from 'lucide-react';
 
-export function SettingsForm() {
+const LANG_OPTIONS = [
+    { value: 'en', label: 'English', native: 'English', flag: '🇸🇬' },
+    { value: 'zh', label: 'Chinese', native: '中文 (简体)', flag: '🇨🇳' },
+    { value: 'ms', label: 'Malay', native: 'Bahasa Melayu', flag: '🇲🇾' },
+];
+
+const MODE_OPTIONS = [
+    {
+        value: 'proactive',
+        icon: Zap,
+        title: 'Proactive',
+        description: 'Automatically scans every message as you browse. Best for catching misinformation early.',
+        color: 'indigo',
+    },
+    {
+        value: 'reactive',
+        icon: Shield,
+        title: 'On-Demand',
+        description: 'Only analyzes when you hover over the pill badge. Saves resources and is more private.',
+        color: 'indigo',
+    },
+];
+
+function RadioCard({ option, selected, onSelect }) {
+    const Icon = option.icon;
+    const isSelected = selected === option.value;
+    return (
+        <button
+            type="button"
+            onClick={() => onSelect(option.value)}
+            className={`w-full text-left flex items-start gap-4 p-4 rounded-xl border-2 transition-all duration-200 cursor-pointer focus:outline-none
+                ${isSelected
+                    ? 'border-indigo-500 bg-indigo-50 shadow-sm'
+                    : 'border-gray-200 bg-white hover:border-indigo-300 hover:bg-gray-50'}`}
+        >
+            <div className={`mt-0.5 p-2 rounded-lg ${isSelected ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-500'}`}>
+                <Icon className="w-5 h-5" />
+            </div>
+            <div className="flex-1 min-w-0">
+                <p className={`text-sm font-semibold ${isSelected ? 'text-indigo-900' : 'text-gray-800'}`}>{option.title}</p>
+                <p className="mt-0.5 text-xs text-gray-500 leading-relaxed">{option.description}</p>
+            </div>
+            <div className={`mt-1 h-5 w-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors
+                ${isSelected ? 'border-indigo-500 bg-indigo-500' : 'border-gray-300 bg-white'}`}>
+                {isSelected && <div className="h-2 w-2 rounded-full bg-white" />}
+            </div>
+        </button>
+    );
+}
+
+export function SettingsForm({ isOnboarding = false, onComplete }) {
     const [settings, setSettings] = useState({
-        analysisMode: 'proactive',   // proactive | reactive
-        aiEngine: 'cloud',           // cloud | gemma
-        language: 'en'               // en | zh | ms
+        analysisMode: 'proactive',
+        language: 'en',
     });
-
     const [saved, setSaved] = useState(false);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Load settings
         if (chrome?.storage?.sync) {
-            chrome.storage.sync.get(['analysisMode', 'aiEngine', 'language'], (result) => {
-                if (result.analysisMode || result.aiEngine || result.language) {
-                    setSettings({
-                        analysisMode: result.analysisMode || 'proactive',
-                        aiEngine: result.aiEngine || 'cloud',
-                        language: result.language || 'en'
-                    });
-                }
+            chrome.storage.sync.get({ analysisMode: 'proactive', language: 'en' }, (result) => {
+                setSettings({ analysisMode: result.analysisMode, language: result.language });
+                setLoading(false);
             });
+        } else {
+            setLoading(false);
         }
     }, []);
 
     const handleChange = (key, value) => {
-        const newSettings = { ...settings, [key]: value };
-        setSettings(newSettings);
+        const next = { ...settings, [key]: value };
+        setSettings(next);
         setSaved(false);
-
-        // Save immediately
         if (chrome?.storage?.sync) {
-            chrome.storage.sync.set(newSettings, () => {
+            // Also save language under kampungLang key so tooltip can read it
+            const toSave = { ...next, kampungLang: next.language };
+            chrome.storage.sync.set(toSave, () => {
                 setSaved(true);
                 setTimeout(() => setSaved(false), 2000);
             });
         }
     };
 
+    if (loading) return null;
+
     return (
-        <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
-            {/* Analysis Mode */}
-            <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                    <Shield className="w-5 h-5 text-indigo-600" />
-                    <h3 className="text-lg font-medium text-gray-900">Scanning Mode</h3>
+        <div className="space-y-8">
+            {/* Scanning Mode */}
+            <section className="space-y-3">
+                <div className="flex items-center gap-2 mb-1">
+                    <Zap className="w-4 h-4 text-indigo-500" />
+                    <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Scanning Mode</h3>
                 </div>
-
-                <div className="space-y-3">
-                    <label className={`relative flex cursor-pointer rounded-lg border bg-white p-4 shadow-sm focus:outline-none ${settings.analysisMode === 'proactive' ? 'border-indigo-500 ring-2 ring-indigo-500' : 'border-gray-300'}`}>
-                        <input type="radio" name="analysisMode" value="proactive" className="sr-only"
-                            checked={settings.analysisMode === 'proactive'}
-                            onChange={() => handleChange('analysisMode', 'proactive')}
+                <div className="space-y-2">
+                    {MODE_OPTIONS.map(opt => (
+                        <RadioCard
+                            key={opt.value}
+                            option={opt}
+                            selected={settings.analysisMode}
+                            onSelect={(v) => handleChange('analysisMode', v)}
                         />
-                        <span className="flex flex-1">
-                            <span className="flex flex-col">
-                                <span className="block text-sm font-medium text-gray-900">Proactive (Auto-scan)</span>
-                                <span className="mt-1 flex items-center text-sm text-gray-500">Automatically scans and flags messages as you browse.</span>
-                            </span>
-                        </span>
-                        <div className={`h-5 w-5 rounded-full border flex items-center justify-center ${settings.analysisMode === 'proactive' ? 'bg-indigo-600 border-indigo-600' : 'bg-white border-gray-300'}`}>
-                            {settings.analysisMode === 'proactive' && <div className="h-2 w-2 rounded-full bg-white" />}
-                        </div>
-                    </label>
-
-                    <label className={`relative flex cursor-pointer rounded-lg border bg-white p-4 shadow-sm focus:outline-none ${settings.analysisMode === 'reactive' ? 'border-indigo-500 ring-2 ring-indigo-500' : 'border-gray-300'}`}>
-                        <input type="radio" name="analysisMode" value="reactive" className="sr-only"
-                            checked={settings.analysisMode === 'reactive'}
-                            onChange={() => handleChange('analysisMode', 'reactive')}
-                        />
-                        <span className="flex flex-1">
-                            <span className="flex flex-col">
-                                <span className="block text-sm font-medium text-gray-900">Reactive (On-demand)</span>
-                                <span className="mt-1 flex items-center text-sm text-gray-500">Only wait for manual clicks or specific links. Best for privacy.</span>
-                            </span>
-                        </span>
-                        <div className={`h-5 w-5 rounded-full border flex items-center justify-center ${settings.analysisMode === 'reactive' ? 'bg-indigo-600 border-indigo-600' : 'bg-white border-gray-300'}`}>
-                            {settings.analysisMode === 'reactive' && <div className="h-2 w-2 rounded-full bg-white" />}
-                        </div>
-                    </label>
+                    ))}
                 </div>
-            </div>
-
-            <hr className="border-gray-200" />
-
-            {/* AI Engine */}
-            <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                    <Zap className="w-5 h-5 text-indigo-600" />
-                    <h3 className="text-lg font-medium text-gray-900">Fact-Check Engine</h3>
-                </div>
-
-                <div className="space-y-3">
-                    <label className={`relative flex cursor-pointer rounded-lg border bg-white p-4 shadow-sm focus:outline-none ${settings.aiEngine === 'cloud' ? 'border-indigo-500 ring-2 ring-indigo-500' : 'border-gray-300'}`}>
-                        <input type="radio" name="aiEngine" value="cloud" className="sr-only"
-                            checked={settings.aiEngine === 'cloud'}
-                            onChange={() => handleChange('aiEngine', 'cloud')}
-                        />
-                        <span className="flex flex-1">
-                            <span className="flex flex-col">
-                                <span className="block text-sm font-medium text-gray-900">Cloud API</span>
-                                <span className="mt-1 flex items-center text-sm text-gray-500">High accuracy, routes text to secure enterprise cloud endpoint.</span>
-                            </span>
-                        </span>
-                        <div className={`h-5 w-5 rounded-full border flex items-center justify-center ${settings.aiEngine === 'cloud' ? 'bg-indigo-600 border-indigo-600' : 'bg-white border-gray-300'}`}>
-                            {settings.aiEngine === 'cloud' && <div className="h-2 w-2 rounded-full bg-white" />}
-                        </div>
-                    </label>
-
-                    <label className={`relative flex cursor-pointer rounded-lg border bg-white p-4 shadow-sm focus:outline-none ${settings.aiEngine === 'gemma' ? 'border-indigo-500 ring-2 ring-indigo-500' : 'border-gray-300'}`}>
-                        <input type="radio" name="aiEngine" value="gemma" className="sr-only"
-                            checked={settings.aiEngine === 'gemma'}
-                            onChange={() => handleChange('aiEngine', 'gemma')}
-                        />
-                        <span className="flex flex-1">
-                            <span className="flex flex-col">
-                                <span className="block text-sm font-medium text-gray-900">Local LLM (Gemma)</span>
-                                <span className="mt-1 flex items-center text-sm text-gray-500">100% private. Text never leaves your device.</span>
-                            </span>
-                        </span>
-                        <div className={`h-5 w-5 rounded-full border flex items-center justify-center ${settings.aiEngine === 'gemma' ? 'bg-indigo-600 border-indigo-600' : 'bg-white border-gray-300'}`}>
-                            {settings.aiEngine === 'gemma' && <div className="h-2 w-2 rounded-full bg-white" />}
-                        </div>
-                    </label>
-                </div>
-            </div>
-
-            <hr className="border-gray-200" />
+            </section>
 
             {/* Language */}
-            <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                    <Globe className="w-5 h-5 text-indigo-600" />
-                    <h3 className="text-lg font-medium text-gray-900">Language Preference</h3>
+            <section className="space-y-3">
+                <div className="flex items-center gap-2 mb-1">
+                    <Globe className="w-4 h-4 text-indigo-500" />
+                    <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Display Language</h3>
                 </div>
+                <div className="grid grid-cols-3 gap-2">
+                    {LANG_OPTIONS.map(lang => (
+                        <button
+                            key={lang.value}
+                            type="button"
+                            onClick={() => handleChange('language', lang.value)}
+                            className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border-2 transition-all duration-200 cursor-pointer focus:outline-none
+                                ${settings.language === lang.value
+                                    ? 'border-indigo-500 bg-indigo-50'
+                                    : 'border-gray-200 bg-white hover:border-indigo-200 hover:bg-gray-50'}`}
+                        >
+                            <span className="text-2xl">{lang.flag}</span>
+                            <span className={`text-xs font-semibold ${settings.language === lang.value ? 'text-indigo-700' : 'text-gray-600'}`}>{lang.label}</span>
+                            <span className="text-[10px] text-gray-400">{lang.native}</span>
+                        </button>
+                    ))}
+                </div>
+            </section>
 
-                <select
-                    value={settings.language}
-                    onChange={(e) => handleChange('language', e.target.value)}
-                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                >
-                    <option value="en">English (Default)</option>
-                    <option value="zh">Chinese (Simplified) - 中文</option>
-                    <option value="ms">Malay - Bahasa Melayu</option>
-                </select>
-            </div>
-
-            <div className="pt-4 flex items-center justify-between">
-                <span className={`text-sm tracking-wide ${saved ? 'text-green-600 font-medium' : 'text-gray-400'}`}>
-                    {saved ? 'Settings Saved Automatically ✓' : ''}
+            {/* Save / CTA */}
+            <div className="flex items-center justify-between pt-2">
+                <span className={`text-sm font-medium transition-opacity duration-300 ${saved ? 'text-green-600 opacity-100' : 'opacity-0'}`}>
+                    <CheckCircle2 className="inline w-4 h-4 mr-1 mb-0.5" />Saved!
                 </span>
+                {isOnboarding && onComplete && (
+                    <button
+                        type="button"
+                        onClick={onComplete}
+                        className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                    >
+                        Start Using SureBoh.ai
+                        <ChevronRight className="w-4 h-4" />
+                    </button>
+                )}
             </div>
-        </form>
+        </div>
     );
 }
