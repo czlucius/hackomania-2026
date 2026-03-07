@@ -9,7 +9,8 @@
   "host_permissions": [
     "*://web.whatsapp.com/*",
     "*://forums.hardwarezone.com.sg/*",
-    "*://web.telegram.org/*"
+    "*://web.telegram.org/*",
+    "http://localhost:8000/*"
   ],
   "background": {
     "service_worker": "service-worker-loader.js",
@@ -22,7 +23,7 @@
   "content_scripts": [
     {
       "js": [
-        "assets/content.jsx-loader-BxVN1_np.js"
+        "assets/content.jsx-loader-CQpCa_sK.js"
       ],
       "matches": [
         "*://web.whatsapp.com/*",
@@ -40,7 +41,7 @@
       ],
       "resources": [
         "assets/zap-BHQr4dbS.js",
-        "assets/content.jsx-BOKoXZNb.js"
+        "assets/content.jsx-CW1hLUgG.js"
       ],
       "use_dynamic_url": false
     }
