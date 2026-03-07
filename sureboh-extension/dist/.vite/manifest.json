@@ -5,9 +5,9 @@
     "src": "../../../../../../@crx/manifest",
     "isEntry": true
   },
-  "_content.jsx-loader-pqm8VIEn.js": {
-    "file": "assets/content.jsx-loader-pqm8VIEn.js",
-    "src": "_content.jsx-loader-pqm8VIEn.js"
+  "_content.jsx-loader-DyUgJPmO.js": {
+    "file": "assets/content.jsx-loader-DyUgJPmO.js",
+    "src": "_content.jsx-loader-DyUgJPmO.js"
   },
   "_zap-BHQr4dbS.js": {
     "file": "assets/zap-BHQr4dbS.js",
@@ -20,7 +20,7 @@
     "isEntry": true
   },
   "src/content.jsx": {
-    "file": "assets/content.jsx-CahHjYY5.js",
+    "file": "assets/content.jsx-Bgn94f_-.js",
     "name": "content.jsx",
     "src": "src/content.jsx",
     "isEntry": true,
