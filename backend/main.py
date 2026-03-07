@@ -1,7 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
 import route
+from dotenv import load_dotenv
+
+# Load environment variables at the entry point
+load_dotenv()
 
 # create a Socket.IO server
 app = FastAPI()

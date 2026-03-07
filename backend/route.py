@@ -1,12 +1,21 @@
+import os
+import sys
 import logging
+import hashlib
+import datetime
+import clickhouse_connect
+from urllib.parse import urlparse
 from typing import TypedDict
-
 from fastapi import APIRouter
-from openai import AsyncOpenAI, OpenAI
+from openai import OpenAI
 from pydantic import BaseModel
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 openai_client = OpenAI(
-    api_key="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"
+    api_key=os.getenv("OPENAI_API_KEY")
 )
 
 SYSTEM_INSTRUCTIONS = """
@@ -28,8 +37,6 @@ Analysis Logic:
 - Link to gov.sg or official channels if possible in the explanation.
 """
 
-import sys
-
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 handler = logging.StreamHandler(sys.stdout)
@@ -37,6 +44,19 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 logger.setLevel(logging.INFO)
+
+# Connect to Clickhouse
+try:
+    ch_client = clickhouse_connect.get_client(
+        host=os.getenv('CLICKHOUSE_HOST'),
+        user=os.getenv('CLICKHOUSE_USER'),
+        password=os.getenv('CLICKHOUSE_PASSWORD'),
+        secure=True
+    )
+    logger.info("Connected to ClickHouse successfully.")
+except Exception as e:
+    logger.error(f"Failed to connect to ClickHouse: {e}")
+    ch_client = None
 
 router = APIRouter()
 
@@ -73,23 +93,8 @@ class FakeNewsAnalysisResult(BaseModel):
 
 analysis_cache = {}
 
-import hashlib
-import datetime
-import clickhouse_connect
-from urllib.parse import urlparse
 
-# Connect to Clickhouse
-try:
-    ch_client = clickhouse_connect.get_client(
-        host='pokdknhsax.ap-southeast-1.aws.clickhouse.cloud',
-        user='default',
-        password='Hm1mmI~ovrB3q',
-        secure=True
-    )
-    logger.info("Connected to ClickHouse successfully.")
-except Exception as e:
-    logger.error(f"Failed to connect to ClickHouse: {e}")
-    ch_client = None
+# ClickHouse client is initialized once at the top
 
 
 @router.post("/check")
@@ -170,23 +175,8 @@ async def check(user_request: InputFormat):
         raise
 
 
-import hashlib
-import datetime
-import clickhouse_connect
-from urllib.parse import urlparse
 
-# Connect to Clickhouse
-try:
-    ch_client = clickhouse_connect.get_client(
-        host='pokdknhsax.ap-southeast-1.aws.clickhouse.cloud',
-        user='default',
-        password='Hm1mmI~ovrB3q',
-        secure=True
-    )
-    logger.info("Connected to ClickHouse successfully.")
-except Exception as e:
-    logger.error(f"Failed to connect to ClickHouse: {e}")
-    ch_client = None
+# ClickHouse client is used from module level
 
 class VoteRequest(BaseModel):
     claim_text: str
