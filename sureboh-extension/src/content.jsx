@@ -9,7 +9,7 @@ const isHWZ = window.location.hostname.includes('hardwarezone');
 const isTelegram = window.location.hostname.includes('telegram');
 const isWhatsApp = window.location.hostname.includes('whatsapp');
 const isReddit = window.location.hostname.includes('reddit') &&
-    (window.location.pathname.startsWith('/r/singapore') || window.location.pathname.startsWith('/r/asksingapore'));
+    window.location.pathname.toLowerCase().match(/^\/r\/(singapore|asksingapore|singaporeraw)\b/);
 
 let platformName = 'Unknown';
 if (isWhatsApp) platformName = 'WhatsApp';
