@@ -1,12 +1,17 @@
 // background.js - Analysis is now handled by the Python backend
 
 async function analyzeWithBackend(text, url = '') {
+    // Get user language preference from storage
+    const settings = await chrome.storage.sync.get(['kampungLang']);
+    const preferredLang = settings.kampungLang || 'en';
+
     const body = {
         content: text,
         source_url: url,
         type: 'article',
         from_user: null,
-        group_chat: false
+        group_chat: false,
+        preferred_lang: preferredLang
     };
 
     const res = await fetch('http://localhost:8000/api/check', {
@@ -40,13 +45,14 @@ async function analyzeWithBackend(text, url = '') {
     const summaryZh = [];
     const summaryMs = [];
 
-    // 1. Clear Verdict Explanation
+    // 1. Clear Verdict Explanation (Localized)
     if (data.explanation) {
         summaryEn.push({
             type: data.classification === "Likely accurate" ? 'real' : 'fake',
             text: data.explanation
         });
     }
+    // Only populate if backend sent it (respecting optimization)
     if (data.zh?.explanation) {
         summaryZh.push({
             type: data.classification === "Likely accurate" ? 'real' : 'fake',
@@ -60,38 +66,42 @@ async function analyzeWithBackend(text, url = '') {
         });
     }
 
-    // 2. Supporting Evidence or Missing Context
+    // 2. Secondary Fields (English Only - Optimized for Speed)
     if (data.classification === "Likely accurate") {
         if (data.supporting_evidence) summaryEn.push({ type: 'real', text: `Verified: ${data.supporting_evidence}` });
-        if (data.zh?.supporting_evidence) summaryZh.push({ type: 'real', text: `已验证: ${data.zh.supporting_evidence}` });
-        if (data.ms?.supporting_evidence) summaryMs.push({ type: 'real', text: `Disahkan: ${data.ms.supporting_evidence}` });
     } else if (data.missing_context) {
         summaryEn.push({ type: 'info', text: `Context needed: ${data.missing_context}` });
-        if (data.zh?.missing_context) summaryZh.push({ type: 'info', text: `缺少背景: ${data.zh.missing_context}` });
-        if (data.ms?.missing_context) summaryMs.push({ type: 'info', text: `Konteks diperlukan: ${data.ms.missing_context}` });
     }
 
-    // 3. Recommended Action
     if (data.recommended_action) summaryEn.push({ type: 'info', text: `Action: ${data.recommended_action}` });
-    if (data.zh?.recommended_action) summaryZh.push({ type: 'info', text: `建议: ${data.zh.recommended_action}` });
-    if (data.ms?.recommended_action) summaryMs.push({ type: 'info', text: `Tindakan: ${data.ms.recommended_action}` });
 
     return {
         trust_score: trustScore,
         classification: data.classification,
         confidence_level: data.confidence_level,
         verdict: {
-            en: verdictEn,
-            zh: verdictEn === "Likely accurate" ? "基本准确" : verdictEn === "Potentially misleading" ? "可能含有误导性信息" : "未经证实 / 不确定",
-            ms: verdictEn === "Likely accurate" ? "Mungkin tepat" : verdictEn === "Potentially misleading" ? "Mungkin mengelirukan" : "Tidak disahkan / tidak pasti"
+            en: data.verdict || verdictEn,
+            zh: data.zh?.explanation ? (verdictEn === "Likely accurate" ? "基本准确" : verdictEn === "Potentially misleading" ? "可能含有误导性信息" : "未经证实 / 不确定") : null,
+            ms: data.ms?.explanation ? (verdictEn === "Likely accurate" ? "Mungkin tepat" : verdictEn === "Potentially misleading" ? "Mungkin mengelirukan" : "Tidak disahkan / tidak pasti") : null
         },
         summary: {
             en: summaryEn,
             zh: summaryZh,
             ms: summaryMs
         },
-        sources: data.source_credibility ? [{ name: data.source_credibility, icon: "🔍", url: url }] : []
+        sources: data.source_credibility ? [{ name: data.source_credibility, icon: "🔍", url: url }] : [],
+        original_explanation: data.explanation // Store for on-demand translation
     };
+}
+
+async function translateOnDemand(text, targetLang) {
+    const res = await fetch('http://localhost:8000/api/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, target_lang: targetLang })
+    });
+    if (!res.ok) throw new Error("Translation failed");
+    return await res.json();
 }
 
 // Fallback response for errors
@@ -118,6 +128,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             });
 
         return true; // indicates asynchronous response
+    } else if (request.type === 'TRANSLATE_RESULT') {
+        translateOnDemand(request.text, request.targetLang)
+            .then(result => sendResponse(result))
+            .catch(err => {
+                console.error('Translation failed:', err);
+                sendResponse({ explanation: "Error translating." });
+            });
+        return true;
     } else if (request.type === 'SUBMIT_VOTE') {
         const { vote, assessment } = request;
         const claimText = assessment?.verdict?.en || 'Unknown Claim';

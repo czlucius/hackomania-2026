@@ -76,10 +76,77 @@ const confidenceStyle = {
     'Low': { bg: 'bg-gray-100', text: 'text-gray-600' },
 };
 
-export function ExplainabilityTooltip({ children, assessment }) {
+export function ExplainabilityTooltip({ children, assessment: initialAssessment }) {
     const [isOpen, setIsOpen] = useState(false);
     const [lang, setLang] = useState('en');
     const [userVote, setUserVote] = useState(null); // 'up' | 'down' | null
+    const [assessment, setAssessment] = useState(initialAssessment);
+    const [isTranslating, setIsTranslating] = useState(false);
+
+    // Synchronize local assessment if prop changes
+    React.useEffect(() => {
+        setAssessment(initialAssessment);
+        // Reset language to user default if it's a new assessment
+        chrome.storage.sync.get(['kampungLang'], (data) => {
+            if (data.kampungLang) setLang(data.kampungLang);
+        });
+    }, [initialAssessment]);
+
+    const handleLanguageChange = async (newLang) => {
+        setLang(newLang);
+
+        // Check if we need to fetch translation
+        const hasTranslation = (newLang === 'en') || (assessment?.summary?.[newLang]?.length > 0 && assessment?.verdict?.[newLang]);
+
+        if (!hasTranslation && !isTranslating && chrome?.runtime?.sendMessage) {
+            setIsTranslating(true);
+            try {
+                const result = await new Promise((resolve, reject) => {
+                    chrome.runtime.sendMessage({
+                        type: 'TRANSLATE_RESULT',
+                        text: assessment.original_explanation,
+                        targetLang: newLang
+                    }, (response) => {
+                        if (chrome.runtime.lastError) reject(chrome.runtime.lastError);
+                        else resolve(response);
+                    });
+                });
+
+                if (result && result.explanation) {
+                    // Update local assessment state with the new translation
+                    const updatedAssessment = { ...assessment };
+
+                    // Update verdict
+                    const verdictColorStr = scoreColor.split(' ')[0]; // keep it consistent
+                    const rawVerdict = assessment.classification === "Likely accurate"
+                        ? (newLang === 'zh' ? "基本准确" : "Mungkin tepat")
+                        : (assessment.classification === "Potentially misleading"
+                            ? (newLang === 'zh' ? "可能含有误导性信息" : "Mungkin mengelirukan")
+                            : (newLang === 'zh' ? "未经证实 / 不确定" : "Tidak disahkan / tidak pasti"));
+
+                    updatedAssessment.verdict = {
+                        ...updatedAssessment.verdict,
+                        [newLang]: rawVerdict
+                    };
+
+                    // Update summary
+                    updatedAssessment.summary = {
+                        ...updatedAssessment.summary,
+                        [newLang]: [{
+                            type: assessment.classification === "Likely accurate" ? 'real' : 'fake',
+                            text: result.explanation
+                        }]
+                    };
+
+                    setAssessment(updatedAssessment);
+                }
+            } catch (err) {
+                console.error("Translation failed:", err);
+            } finally {
+                setIsTranslating(false);
+            }
+        }
+    };
 
     const { x, y, strategy, refs, context } = useFloating({
         open: isOpen,
@@ -126,7 +193,7 @@ export function ExplainabilityTooltip({ children, assessment }) {
             {...getFloatingProps()}
             className="bg-white rounded-xl shadow-2xl border border-gray-100 p-4"
         >
-            <KampungToggle currentLang={lang} onLanguageChange={setLang} />
+            <KampungToggle currentLang={lang} onLanguageChange={handleLanguageChange} />
 
             {/* Classification + Confidence badges */}
             <div className="flex items-center gap-2 mb-3 flex-wrap">
@@ -157,7 +224,9 @@ export function ExplainabilityTooltip({ children, assessment }) {
 
                 <div>
                     <p className="text-xs text-gray-400 uppercase tracking-wider font-semibold">AI Trust Score</p>
-                    <h3 className={`text-lg font-bold ${scoreColor.split(' ')[0]}`}>{assessment?.verdict?.[lang]}</h3>
+                    <h3 className={`text-lg font-bold ${scoreColor.split(' ')[0]}`}>
+                        {isTranslating ? "Translating..." : (assessment?.verdict?.[lang] || "Translating...")}
+                    </h3>
                 </div>
             </div>
 
