@@ -12,6 +12,7 @@ export function ExplainabilityTooltip({ children, assessment }) {
         open: isOpen,
         onOpenChange: setIsOpen,
         placement: 'top-start',
+        strategy: 'fixed',
         middleware: [offset(10), flip(), shift()],
     });
 
