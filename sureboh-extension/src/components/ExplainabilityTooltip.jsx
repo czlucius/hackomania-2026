@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useFloating, useInteractions, useHover, safePolygon, offset, flip, shift, useClick, useDismiss, useRole } from '@floating-ui/react';
+import { ThumbsUp, ThumbsDown, CheckCircle2, AlertTriangle, Info } from 'lucide-react';
 import { KampungToggle } from './KampungToggle';
 
 export function ExplainabilityTooltip({ children, assessment }) {
     const [isOpen, setIsOpen] = useState(false);
     const [lang, setLang] = useState('en');
+    const [userVote, setUserVote] = useState(null); // 'up' | 'down' | null
 
     const { x, y, strategy, refs, context } = useFloating({
         open: isOpen,
@@ -70,35 +72,112 @@ export function ExplainabilityTooltip({ children, assessment }) {
                         </div>
                     </div>
 
-                    <ul className="space-y-2 mb-3">
-                        {assessment?.summary[lang]?.map((point, idx) => (
-                            <li key={idx} className="text-sm text-gray-700 flex items-start gap-2">
-                                <span className="text-blue-500 mt-1">•</span>
-                                <span className="leading-snug">{point}</span>
-                            </li>
-                        ))}
+                    <ul className="space-y-3 mb-3">
+                        {assessment?.summary[lang]?.map((point, idx) => {
+                            // Support for old string arrays as fallback just in case
+                            if (typeof point === 'string') {
+                                return (
+                                    <li key={idx} className="text-sm text-gray-700 flex items-start gap-2">
+                                        <span className="text-blue-500 mt-1">•</span>
+                                        <span className="leading-snug">{point}</span>
+                                    </li>
+                                );
+                            }
+
+                            // Structured rendering
+                            let Icon = Info;
+                            let bgColor = 'bg-gray-50';
+                            let iconColor = 'text-gray-500';
+                            let textColor = 'text-gray-700';
+
+                            if (point.type === 'fake') {
+                                Icon = AlertTriangle;
+                                bgColor = 'bg-red-50';
+                                iconColor = 'text-red-500';
+                                textColor = 'text-red-900';
+                            } else if (point.type === 'real') {
+                                Icon = CheckCircle2;
+                                bgColor = 'bg-green-50';
+                                iconColor = 'text-green-500';
+                                textColor = 'text-green-900';
+                            } else if (point.type === 'info') {
+                                Icon = Info;
+                                bgColor = 'bg-blue-50';
+                                iconColor = 'text-blue-500';
+                                textColor = 'text-blue-900';
+                            }
+
+                            return (
+                                <li key={idx} className={`p-2.5 rounded-lg flex items-start gap-2.5 ${bgColor}`}>
+                                    <Icon className={`w-4 h-4 shrink-0 mt-0.5 ${iconColor}`} />
+                                    <span className={`text-sm leading-snug font-medium ${textColor}`}>
+                                        {point.text}
+                                    </span>
+                                </li>
+                            );
+                        })}
                     </ul>
 
-                    <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
-                        <span className="text-xs text-gray-400 font-medium">Sources:</span>
-                        {assessment?.sources?.length > 0 ? (
-                            <div className="flex gap-1">
-                                {assessment.sources.map((src, i) => {
-                                    if (src.url) {
+                    <div className="flex items-center justify-between pt-2 border-t border-gray-100 mt-2">
+                        <div className="flex items-center gap-2">
+                            <span className="text-xs text-gray-400 font-medium">Sources:</span>
+                            {assessment?.sources?.length > 0 ? (
+                                <div className="flex gap-1">
+                                    {assessment.sources.map((src, i) => {
+                                        if (src.url) {
+                                            return (
+                                                <a key={i} href={src.url} target="_blank" rel="noopener noreferrer" title={src.name} className="flex items-center justify-center w-6 h-6 text-base cursor-pointer bg-gray-50 rounded hover:bg-gray-100 transition-colors">
+                                                    {src.icon}
+                                                </a>
+                                            );
+                                        }
                                         return (
-                                            <a key={i} href={src.url} target="_blank" rel="noopener noreferrer" title={src.name} className="text-lg cursor-pointer bg-gray-50 rounded p-1 hover:bg-gray-100 transition-colors">
-                                                {src.icon}
-                                            </a>
+                                            <span key={i} title={src.name} className="flex items-center justify-center w-6 h-6 text-base cursor-help bg-gray-50 rounded">{src.icon}</span>
                                         );
+                                    })}
+                                </div>
+                            ) : (
+                                <span className="text-xs text-gray-500 italic">None</span>
+                            )}
+                        </div>
+
+                        {/* Voting Actions */}
+                        <div className="flex items-center gap-1.5">
+                            <button
+                                onClick={() => {
+                                    if (!userVote && chrome?.runtime?.sendMessage) {
+                                        setUserVote('up');
+                                        chrome.runtime.sendMessage({
+                                            type: 'SUBMIT_VOTE',
+                                            vote: 1,
+                                            assessment
+                                        });
                                     }
-                                    return (
-                                        <span key={i} title={src.name} className="text-lg cursor-help bg-gray-50 rounded p-1">{src.icon}</span>
-                                    );
-                                })}
-                            </div>
-                        ) : (
-                            <span className="text-xs text-gray-500 italic">None</span>
-                        )}
+                                }}
+                                disabled={!!userVote}
+                                className={`p-1.5 rounded-md transition-colors ${userVote === 'up' ? 'bg-green-100 text-green-700' : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'} ${userVote === 'down' ? 'opacity-30' : ''}`}
+                                title="Helpful"
+                            >
+                                <ThumbsUp className="w-4 h-4" />
+                            </button>
+                            <button
+                                onClick={() => {
+                                    if (!userVote && chrome?.runtime?.sendMessage) {
+                                        setUserVote('down');
+                                        chrome.runtime.sendMessage({
+                                            type: 'SUBMIT_VOTE',
+                                            vote: -1,
+                                            assessment
+                                        });
+                                    }
+                                }}
+                                disabled={!!userVote}
+                                className={`p-1.5 rounded-md transition-colors ${userVote === 'down' ? 'bg-red-100 text-red-700' : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'} ${userVote === 'up' ? 'opacity-30' : ''}`}
+                                title="Not Helpful"
+                            >
+                                <ThumbsDown className="w-4 h-4" />
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

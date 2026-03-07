@@ -1,7 +1,8 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { InjectedOverlay } from './components/InjectedOverlay';
-import { HWZAnalyzeButton } from './components/HWZAnalyzeButton';
+import { AnalyzeManualButton } from './components/AnalyzeManualButton';
+import { ImageWarningBanner } from './components/ImageWarningBanner';
 import cssText from './index.css?inline';
 
 const isHWZ = window.location.hostname.includes('hardwarezone');
@@ -12,6 +13,28 @@ if (isHWZ) platformName = 'HardwareZone';
 if (isTelegram) platformName = 'Telegram Web';
 
 console.log(`SureBoh.ai Content Script Loaded! Listening for ${platformName} messages...`);
+
+let currentAnalysisMode = 'proactive';
+
+const getComponentForMode = (text) => {
+    return currentAnalysisMode === 'reactive'
+        ? <AnalyzeManualButton text={text} />
+        : <InjectedOverlay text={text} />;
+};
+
+if (chrome?.storage?.sync) {
+    chrome.storage.sync.get(['analysisMode'], (result) => {
+        if (result.analysisMode) {
+            currentAnalysisMode = result.analysisMode;
+        }
+    });
+
+    chrome.storage.onChanged.addListener((changes, namespace) => {
+        if (namespace === 'sync' && changes.analysisMode) {
+            currentAnalysisMode = changes.analysisMode.newValue;
+        }
+    });
+}
 
 const scanDOM = () => {
     // --- Telegram Web Logic ---
@@ -65,7 +88,7 @@ const scanDOM = () => {
             shadow.appendChild(reactRoot);
 
             const root = createRoot(reactRoot);
-            root.render(<InjectedOverlay text={rawText} />);
+            root.render(getComponentForMode(rawText));
         });
     }
 
@@ -112,7 +135,7 @@ const scanDOM = () => {
             shadow.appendChild(reactRoot);
 
             const root = createRoot(reactRoot);
-            root.render(<HWZAnalyzeButton text={rawText} />);
+            root.render(getComponentForMode(rawText));
         });
     }
 
@@ -162,10 +185,57 @@ const scanDOM = () => {
                 shadow.appendChild(reactRoot);
 
                 const root = createRoot(reactRoot);
-                root.render(<InjectedOverlay text={rawText} />);
+                root.render(getComponentForMode(rawText));
             }
         });
     }
+
+    // --- Image Scanning Logic (Cross-platform) ---
+    const images = document.querySelectorAll('img:not([data-sureboh-img-analyzed])');
+    images.forEach(img => {
+        img.setAttribute('data-sureboh-img-analyzed', 'true');
+        const src = img.src || '';
+        const alt = img.alt || '';
+
+        // Skip tiny base64 or purely UI icons
+        if (!src || src.startsWith('data:') || img.width < 100 || img.height < 100) return;
+
+        if (chrome?.runtime?.sendMessage) {
+            chrome.runtime.sendMessage({ type: 'ANALYZE_IMAGE', src, alt }, (response) => {
+                if (response && response.warning) {
+                    const parent = img.parentElement;
+                    if (!parent) return;
+
+                    if (getComputedStyle(parent).position === 'static') {
+                        parent.style.position = 'relative';
+                    }
+
+                    const container = document.createElement('div');
+                    // Style container so absolute children position contextually
+                    container.style.position = 'absolute';
+                    container.style.top = '0';
+                    container.style.left = '0';
+                    container.style.width = '100%';
+                    container.style.height = '100%';
+                    container.style.pointerEvents = 'none'; // let clicks pass through to the image
+                    container.style.zIndex = '50';
+
+                    parent.appendChild(container);
+
+                    const shadow = container.attachShadow({ mode: 'open' });
+                    const style = document.createElement('style');
+                    style.textContent = cssText;
+                    shadow.appendChild(style);
+
+                    const reactRoot = document.createElement('div');
+                    shadow.appendChild(reactRoot);
+
+                    const root = createRoot(reactRoot);
+                    root.render(<ImageWarningBanner message={response.warning} />);
+                }
+            });
+        }
+    });
 };
 
 // Run once immediately to catch Server-Side Rendered content (like HWZ posts)

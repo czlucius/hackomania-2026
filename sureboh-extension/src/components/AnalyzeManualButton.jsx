@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ShieldAlert } from 'lucide-react';
 import { InjectedOverlay } from './InjectedOverlay';
 
-export function HWZAnalyzeButton({ text }) {
+export function AnalyzeManualButton({ text }) {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
 
     if (isAnalyzing) {
