@@ -66,13 +66,11 @@ export function ImageScanOverlay({ chromeMessage, reactive }) {
         : (isManipulated ? 'Likely AI-Generated' : 'Potentially Misleading');
 
     return (
-        <div
-            className="absolute top-2 left-2 right-2 flex pointer-events-none z-50"
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-        >
+        <div className="absolute top-2 left-2 z-50 pointer-events-none">
             <div
-                className={`flex items-start gap-2 backdrop-blur-sm border px-2.5 py-1.5 rounded-lg shadow-lg pointer-events-auto cursor-default transition-all duration-300 ${bgColor} text-white max-w-sm overflow-hidden`}
+                className={`flex items-start gap-2 backdrop-blur-sm border px-2.5 py-1.5 rounded-lg shadow-lg pointer-events-auto cursor-pointer transition-all duration-300 ${bgColor} text-white max-w-sm overflow-hidden`}
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
             >
                 <Icon className={`w-4 h-4 shrink-0 mt-0.5 ${TextColor}`} />
                 <div className="flex flex-col gap-0.5 overflow-hidden">

@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/image", tags=["Image Analysis"])
+router = APIRouter()
 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 IMAGE_SYSTEM_PROMPT = """You are SureAnot.ai, a visual misinformation detector focused on Singapore.
@@ -51,7 +51,7 @@ class ImageAnalysisResult(BaseModel):
     confidence: str
 
 
-@router.post("/check", response_model=ImageAnalysisResult)
+@router.post("/image/check", response_model=ImageAnalysisResult)
 async def check_image(request: ImageCheckRequest):
     if not request.image_url and not request.image_b64:
         raise HTTPException(status_code=400, detail="Either image_url or image_b64 is required")
@@ -104,11 +104,4 @@ async def check_image(request: ImageCheckRequest):
         )
     except Exception as e:
         logger.error(f"Image analysis failed: {e}")
-        # In case of API failure, don't break the extension UI, just return no warning
-        return ImageAnalysisResult(
-            is_flagged=False,
-            classification="uncertain",
-            warning=None,
-            explanation=f"Image analysis failed: {str(e)}",
-            confidence="low"
-        )
+        raise HTTPException(status_code=500, detail=f"Image analysis failed: {str(e)}")
