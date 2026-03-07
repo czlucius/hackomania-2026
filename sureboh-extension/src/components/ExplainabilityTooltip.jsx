@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useFloating, useInteractions, useHover, safePolygon, offset, flip, shift, arrow } from '@floating-ui/react';
+import { useFloating, useInteractions, useHover, safePolygon, offset, flip, shift, useClick, useDismiss, useRole } from '@floating-ui/react';
 import { KampungToggle } from './KampungToggle';
 
 export function ExplainabilityTooltip({ children, assessment }) {
@@ -15,8 +15,14 @@ export function ExplainabilityTooltip({ children, assessment }) {
 
     const hover = useHover(context, {
         handleClose: safePolygon(),
+        delay: { open: 0, close: 300 }, // 300ms grace period prevents accidental closes
     });
-    const { getReferenceProps, getFloatingProps } = useInteractions([hover]);
+
+    const click = useClick(context);
+    const dismiss = useDismiss(context);
+    const role = useRole(context);
+
+    const { getReferenceProps, getFloatingProps } = useInteractions([hover, click, dismiss, role]);
 
     const scoreColor = assessment?.trust_score > 80
         ? 'text-green-500 stroke-green-500'
