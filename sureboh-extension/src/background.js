@@ -69,28 +69,46 @@ async function analyzeWithBackend(text, url = '') {
         trustScore = 15;
     }
 
-    // Create a clean, concise summary list
+    // Create clean, concise summary lists for EN, ZH, and MS
     const summaryEn = [];
+    const summaryZh = [];
+    const summaryMs = [];
 
     // 1. Clear Verdict Explanation
     if (data.explanation) {
         summaryEn.push({
             type: data.classification === "Likely accurate" ? 'real' : 'fake',
-            text: data.explanation.split('.')[0] + '.' // Just the first sentence for conciseness
+            text: data.explanation.split('.')[0] + '.'
+        });
+    }
+    if (data.zh?.explanation) {
+        summaryZh.push({
+            type: data.classification === "Likely accurate" ? 'real' : 'fake',
+            text: data.zh.explanation.split('。')[0] + '。'
+        });
+    }
+    if (data.ms?.explanation) {
+        summaryMs.push({
+            type: data.classification === "Likely accurate" ? 'real' : 'fake',
+            text: data.ms.explanation.split('.')[0] + '.'
         });
     }
 
     // 2. Supporting Evidence or Missing Context
-    if (data.classification === "Likely accurate" && data.supporting_evidence) {
-        summaryEn.push({ type: 'real', text: `Verified via official reports: ${data.supporting_evidence.slice(0, 100)}...` });
+    if (data.classification === "Likely accurate") {
+        if (data.supporting_evidence) summaryEn.push({ type: 'real', text: `Verified: ${data.supporting_evidence.slice(0, 100)}...` });
+        if (data.zh?.supporting_evidence) summaryZh.push({ type: 'real', text: `已验证: ${data.zh.supporting_evidence.slice(0, 100)}...` });
+        if (data.ms?.supporting_evidence) summaryMs.push({ type: 'real', text: `Disahkan: ${data.ms.supporting_evidence.slice(0, 100)}...` });
     } else if (data.missing_context) {
         summaryEn.push({ type: 'info', text: `Context needed: ${data.missing_context.split('\n')[0]}` });
+        if (data.zh?.missing_context) summaryZh.push({ type: 'info', text: `缺少背景: ${data.zh.missing_context.split('\n')[0]}` });
+        if (data.ms?.missing_context) summaryMs.push({ type: 'info', text: `Konteks diperlukan: ${data.ms.missing_context.split('\n')[0]}` });
     }
 
     // 3. Recommended Action
-    if (data.recommended_action) {
-        summaryEn.push({ type: 'info', text: `Action: ${data.recommended_action.split('.')[0]}.` });
-    }
+    if (data.recommended_action) summaryEn.push({ type: 'info', text: `Action: ${data.recommended_action.split('.')[0]}.` });
+    if (data.zh?.recommended_action) summaryZh.push({ type: 'info', text: `建议: ${data.zh.recommended_action.split('。')[0]}。` });
+    if (data.ms?.recommended_action) summaryMs.push({ type: 'info', text: `Tindakan: ${data.ms.recommended_action.split('.')[0]}.` });
 
     return {
         trust_score: trustScore,
@@ -101,8 +119,8 @@ async function analyzeWithBackend(text, url = '') {
         },
         summary: {
             en: summaryEn,
-            zh: summaryEn.map(s => ({ ...s, text: `[ZH] ${s.text}` })), // Placeholder for actual translation logic
-            ms: summaryEn.map(s => ({ ...s, text: `[MS] ${s.text}` }))
+            zh: summaryZh,
+            ms: summaryMs
         },
         sources: data.source_credibility ? [{ name: data.source_credibility, icon: "🔍", url: url }] : []
     };

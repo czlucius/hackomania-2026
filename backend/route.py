@@ -17,6 +17,10 @@ Guidelines for Classes:
 2. "Potentially misleading": Use this if the claim is demonstrably false, a known scam, or a manipulated narrative.
 3. "Unverified / uncertain": Use only if the claim is truly ambiguous, a personal anecdote without evidence, or outside your knowledge base.
 
+Multi-language Requirement:
+- You MUST provide the analysis in English (top-level fields), Chinese (in the `zh` field), and Malay (in the `ms` field).
+- Ensure translations are professional and contextually accurate for Singapore.
+
 Analysis Logic:
 - For Singapore news (e.g., cigarette seizures at Changi, arrests, health advisories), if the location/numbers/dates match known reports, mark as "Likely accurate".
 - Check for local context: cultural references, Singlish, and local acronyms.
@@ -38,6 +42,13 @@ class InputFormat(TypedDict):
     type: str | None  # "message" or "website" or "article"
 
 
+class Translation(BaseModel):
+    explanation: str
+    supporting_evidence: str
+    missing_context: str | None
+    recommended_action: str
+
+
 class FakeNewsAnalysisResult(BaseModel):
     classification: (
         str  # "Likely accurate", "Unverified / uncertain", "Potentially misleading"
@@ -49,6 +60,8 @@ class FakeNewsAnalysisResult(BaseModel):
     missing_context: str | None
     potential_harm: str | None
     recommended_action: str
+    zh: Translation
+    ms: Translation
 
 
 @router.post("/check")
