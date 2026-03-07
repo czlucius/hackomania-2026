@@ -127,3 +127,70 @@ async def check(user_request: InputFormat):
     except Exception as e:
         logger.error(f"Error during analysis: {str(e)}")
         raise
+
+
+import hashlib
+import datetime
+import clickhouse_connect
+from urllib.parse import urlparse
+
+# Connect to Clickhouse
+try:
+    ch_client = clickhouse_connect.get_client(
+        host='pokdknhsax.ap-southeast-1.aws.clickhouse.cloud',
+        user='default',
+        password='Hm1mmI~ovrB3q',
+        secure=True
+    )
+    logger.info("Connected to ClickHouse successfully.")
+except Exception as e:
+    logger.error(f"Failed to connect to ClickHouse: {e}")
+    ch_client = None
+
+class VoteRequest(BaseModel):
+    claim_text: str
+    verdict: str | None = None
+    trust_score: int | float | None = None
+    vote: str # 'upvote' or 'downvote'
+    platform: str
+    url: str | None = None
+
+@router.post("/telemetry/vote")
+async def submit_vote(request: VoteRequest):
+    if not ch_client:
+        return {"status": "error", "message": "ClickHouse not connected"}
+    
+    # We mainly group by domain for link credibility
+    domain = "unknown"
+    if request.url:
+        parsed = urlparse(request.url)
+        domain = parsed.netloc.replace("www.", "")
+    else:
+        return {"status": "skipped", "reason": "No URL provided for domain tracking"}
+
+    url_hash = hashlib.sha256((request.url or "").encode()).hexdigest()[:16]
+    
+    try:
+        score_delta = 1 if request.vote == 'upvote' else -1
+        upvote_delta = 1 if request.vote == 'upvote' else 0
+        downvote_delta = 1 if request.vote == 'downvote' else 0
+        
+        # Check if domain exists
+        res = ch_client.query(f"SELECT url FROM links WHERE domain = '{domain}' LIMIT 1")
+        if len(res.result_rows) > 0:
+            # Edit existing domain stats (ignoring updated_at as it's a key column in ReplacingMergeTree)
+            if request.vote == 'upvote':
+                ch_client.command(f"ALTER TABLE links UPDATE upvotes = upvotes + 1, score = score + 1 WHERE domain = '{domain}'")
+            else:
+                ch_client.command(f"ALTER TABLE links UPDATE downvotes = downvotes + 1, score = score - 1 WHERE domain = '{domain}'")
+        else:
+            # Insert new domain
+            ch_client.insert('links', [[
+                request.url, url_hash, domain, score_delta, upvote_delta, downvote_delta, 'system', datetime.datetime.now(), datetime.datetime.now()
+            ]], column_names=['url', 'url_hash', 'domain', 'score', 'upvotes', 'downvotes', 'submitted_by', 'created_at', 'updated_at'])
+            
+        logger.info(f"Successfully processed vote for {domain}")
+        return {"status": "success", "domain": domain}
+    except Exception as e:
+        logger.error(f"Failed to submit to ClickHouse: {e}")
+        return {"status": "error", "message": str(e)}

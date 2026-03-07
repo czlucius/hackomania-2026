@@ -168,7 +168,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 verdict: assessment?.verdict?.en,
                 trust_score: assessment?.trust_score,
                 vote: vote,
-                platform: platform
+                platform: platform,
+                url: sender?.tab?.url || ''
             })
         })
             .then(res => res.json())
