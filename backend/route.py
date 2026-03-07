@@ -178,7 +178,7 @@ async def check(user_request: InputFormat):
     try:
         # Use OpenAI SDK with structured outputs
         completion = openai_client.beta.chat.completions.parse(
-            model="gpt-4o-mini",
+            model="gpt-5-mini",
             messages=[
                 {"role": "system", "content": SYSTEM_INSTRUCTIONS},
                 {"role": "user", "content": input_prompt},
@@ -237,7 +237,7 @@ async def translate(request: TranslationRequest):
     
     try:
         completion = openai_client.beta.chat.completions.parse(
-            model="gpt-4o-mini",
+            model="gpt-5-mini",
             messages=[
                 {"role": "system", "content": "You are a professional translator specializing in Singaporean local context and Singlish-to-Standard transitions."},
                 {"role": "user", "content": prompt},
