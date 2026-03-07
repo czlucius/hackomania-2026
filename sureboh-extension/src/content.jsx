@@ -15,14 +15,16 @@ console.log(`SureBoh.ai Content Script Loaded! Listening for ${platformName} mes
 const scanDOM = () => {
     // --- Telegram Web Logic ---
     if (isTelegram) {
-        // Telegram often uses .text-content inside .message
-        const messages = document.querySelectorAll('.message-content, .text-content, [class*="text-content"]');
+        const messages = document.querySelectorAll('.message, [class*="Message"], .message-content, .text-content, [class*="text-content"]');
+
+        let newFound = 0;
         messages.forEach(msg => {
             if (msg.hasAttribute('data-sureboh-analyzed')) return;
 
-            const rawText = msg.innerText;
-            if (!rawText || rawText.length < 15) return;
+            const rawText = msg.innerText || msg.textContent;
+            if (!rawText || rawText.trim().length < 15) return;
 
+            newFound++;
             msg.setAttribute('data-sureboh-analyzed', 'true');
 
             if (getComputedStyle(msg).position === 'static') {
