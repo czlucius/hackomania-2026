@@ -85,15 +85,19 @@ const scanDOM = () => {
         // HWZ uses class 'post-content' or similar for forum posts
         const posts = document.querySelectorAll('.post-content:not([data-sureboh-analyzed]), .bbWrapper:not([data-sureboh-analyzed])');
         console.log(`SureBoh.ai: Found ${posts.length} unanalyzed HWZ posts.`);
-        posts.forEach(post => {
-            const rawText = post.innerText;
-            if (!rawText || rawText.length < 20) {
-                console.log("SureBoh.ai: Skipping short post:", rawText);
+
+        // Determine if there are already analyzed posts on this page to correctly sequence
+        const alreadyAnalyzedCount = document.querySelectorAll('[data-sureboh-analyzed="true"]').length;
+
+        posts.forEach((post, index) => {
+            const rawText = (post.innerText || post.textContent || '').trim();
+            if (rawText.length < 20) {
+                console.log("SureBoh.ai: Skipping short post:", rawText.slice(0, 20));
                 post.setAttribute('data-sureboh-analyzed', 'skipped');
                 return;
             }
 
-            console.log("SureBoh.ai: Analyzing HWZ Post:", rawText.slice(0, 30));
+            const currentPostIndex = alreadyAnalyzedCount + index;
             post.setAttribute('data-sureboh-analyzed', 'true');
 
             if (getComputedStyle(post).position === 'static') {
@@ -101,7 +105,6 @@ const scanDOM = () => {
             }
 
             const container = document.createElement('div');
-            // Flow normally at the bottom of the post
             container.style.position = 'relative';
             container.style.marginTop = '12px';
             container.style.marginBottom = '8px';
@@ -122,7 +125,15 @@ const scanDOM = () => {
             shadow.appendChild(reactRoot);
 
             const root = createRoot(reactRoot);
-            root.render(getComponentForMode(rawText));
+
+            // Logic: Auto-analyze the first post (index 0), rest are manual
+            if (currentPostIndex === 0) {
+                console.log("SureBoh.ai: Auto-analyzing first HWZ post.");
+                root.render(<InjectedOverlay text={rawText} />);
+            } else {
+                console.log(`SureBoh.ai: Adding manual button for HWZ post #${currentPostIndex + 1}.`);
+                root.render(<AnalyzeManualButton text={rawText} />);
+            }
         });
     }
 
