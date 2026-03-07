@@ -25,7 +25,3 @@ async def hello():
 
 app.include_router(router=route.router, prefix="/api")
 app.include_router(router=image_route.router, prefix="/api")
-<<<<<<< HEAD
-=======
-
->>>>>>> a35b2f0b01ad76ea1d0decb518c58015f55e2573

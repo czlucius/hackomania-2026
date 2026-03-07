@@ -12,7 +12,6 @@ const isWhatsApp = window.location.hostname.includes('whatsapp');
 const isInstagram = window.location.hostname.includes('instagram');
 const isReddit = window.location.hostname.includes('reddit') &&
     window.location.pathname.toLowerCase().match(/^\/r\/(singapore|asksingapore|singaporeraw)\b/);
-const isInstagram = window.location.hostname.includes('instagram');
 
 let platformName = 'Unknown';
 if (isWhatsApp) platformName = 'WhatsApp';
@@ -20,8 +19,6 @@ if (isHWZ) platformName = 'HardwareZone';
 if (isTelegram) platformName = 'Telegram Web';
 if (isReddit) platformName = 'Reddit';
 if (isInstagram) platformName = 'Instagram';
-<<<<<<< HEAD
-
 // Convert a loaded <img> element to a base64 JPEG string via canvas.
 // Returns { b64, mime } or null if the canvas is tainted (cross-origin without CORS).
 function imgToBase64(img) {
@@ -40,8 +37,6 @@ function imgToBase64(img) {
         return null;
     }
 }
-=======
->>>>>>> a35b2f0b01ad76ea1d0decb518c58015f55e2573
 
 console.log(`SureAnot.ai Content Script Loaded! Listening for ${platformName} messages...`);
 
