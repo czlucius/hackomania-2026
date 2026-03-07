@@ -19,7 +19,7 @@ openai_client = OpenAI(
 )
 
 SYSTEM_INSTRUCTIONS = """
-You are SureBoh.ai, a specialized fact-checking assistant for Singapore. Your mission is to help people make informed decisions in a fragmented information landscape. Communities need tools that help them UNDERSTAND information better, not just delete it.
+You are SureAnot.ai, a specialized fact-checking assistant for Singapore. Your mission is to help people make informed decisions in a fragmented information landscape. Communities need tools that help them UNDERSTAND information better, not just delete it.
 
 Core Criteria for Analysis:
 

@@ -16,7 +16,7 @@ export function AnalyzeManualButton({ text }) {
                 className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium transition-colors shadow-sm"
             >
                 <ShieldAlert className="w-4 h-4 text-gray-500" />
-                Analyze with SureBoh.ai
+                Analyze with SureAnot.ai
             </button>
         </div>
     );

@@ -17,7 +17,7 @@ if (isHWZ) platformName = 'HardwareZone';
 if (isTelegram) platformName = 'Telegram Web';
 if (isReddit) platformName = 'Reddit';
 
-console.log(`SureBoh.ai Content Script Loaded! Listening for ${platformName} messages...`);
+console.log(`SureAnot.ai Content Script Loaded! Listening for ${platformName} messages...`);
 
 let currentAnalysisMode = 'proactive';
 
@@ -47,23 +47,23 @@ const scanDOM = () => {
         // Telegram Web (K version): messages are in .message > .text-content or .message-content
         // Telegram Web (Z version): messages are in .message-text or .text
         const selectors = [
-            '.text-content:not([data-sureboh-injected])',
-            '.message-text:not([data-sureboh-injected])',
-            '.translatable-message:not([data-sureboh-injected])',
-            '.message > .bubble-content .text:not([data-sureboh-injected])',
+            '.text-content:not([data-sureanot-injected])',
+            '.message-text:not([data-sureanot-injected])',
+            '.translatable-message:not([data-sureanot-injected])',
+            '.message > .bubble-content .text:not([data-sureanot-injected])',
         ].join(', ');
 
         const allMessages = document.querySelectorAll(selectors);
         // Only analyze the most recent 3 messages to avoid overwhelming the service worker
         const messages = Array.from(allMessages).slice(-3);
-        console.log(`SureBoh.ai: Found ${allMessages.length} Telegram messages, analyzing ${messages.length} most recent.`);
+        console.log(`SureAnot.ai: Found ${allMessages.length} Telegram messages, analyzing ${messages.length} most recent.`);
 
         messages.forEach(msg => {
             const rawText = (msg.innerText || msg.textContent || '').trim();
-            console.log(`SureBoh.ai: Telegram msg text (${rawText.length} chars): "${rawText.slice(0, 60)}"`);
+            console.log(`SureAnot.ai: Telegram msg text (${rawText.length} chars): "${rawText.slice(0, 60)}"`);
             if (rawText.length < 15) return;
 
-            msg.setAttribute('data-sureboh-injected', 'true');
+            msg.setAttribute('data-sureanot-injected', 'true');
 
             if (getComputedStyle(msg).position === 'static') {
                 msg.style.position = 'relative';
@@ -95,16 +95,16 @@ const scanDOM = () => {
 
     // --- HardwareZone Logic ---
     else if (isHWZ) {
-        console.log("SureBoh.ai: Scanning HWZ DOM...");
+        console.log("SureAnot.ai: Scanning HWZ DOM...");
         // HWZ uses class 'post-content' or similar for forum posts
-        const posts = document.querySelectorAll('.post-content:not([data-sureboh-analyzed]), .bbWrapper:not([data-sureboh-analyzed])');
-        console.log(`SureBoh.ai: Found ${posts.length} unanalyzed HWZ posts.`);
+        const posts = document.querySelectorAll('.post-content:not([data-sureanot-analyzed]), .bbWrapper:not([data-sureanot-analyzed])');
+        console.log(`SureAnot.ai: Found ${posts.length} unanalyzed HWZ posts.`);
 
         // Extract Thread Title for context
         const threadTitle = document.querySelector('h1.p-title-value')?.innerText || document.title || '';
 
         // Determine if there are already analyzed posts on this page to correctly sequence
-        const alreadyAnalyzedCount = document.querySelectorAll('[data-sureboh-analyzed="true"]').length;
+        const alreadyAnalyzedCount = document.querySelectorAll('[data-sureanot-analyzed="true"]').length;
 
         posts.forEach((post, index) => {
             // Extract text but also include full URLs if they exist
@@ -113,8 +113,8 @@ const scanDOM = () => {
 
             const rawText = (post.innerText || post.textContent || '').trim();
             if (rawText.length < 20) {
-                console.log("SureBoh.ai: Skipping short post:", rawText.slice(0, 20));
-                post.setAttribute('data-sureboh-analyzed', 'skipped');
+                console.log("SureAnot.ai: Skipping short post:", rawText.slice(0, 20));
+                post.setAttribute('data-sureanot-analyzed', 'skipped');
                 return;
             }
 
@@ -122,7 +122,7 @@ const scanDOM = () => {
             const analysisPayload = `Thread Title: ${threadTitle}\n\nPost Content: ${rawText}${linkContext}`;
 
             const currentPostIndex = alreadyAnalyzedCount + index;
-            post.setAttribute('data-sureboh-analyzed', 'true');
+            post.setAttribute('data-sureanot-analyzed', 'true');
 
             if (getComputedStyle(post).position === 'static') {
                 post.style.position = 'relative';
@@ -152,10 +152,10 @@ const scanDOM = () => {
 
             // Logic: Auto-analyze the first post (index 0), rest are manual
             if (currentPostIndex === 0) {
-                console.log("SureBoh.ai: Auto-analyzing first HWZ post.");
+                console.log("SureAnot.ai: Auto-analyzing first HWZ post.");
                 root.render(<InjectedOverlay text={analysisPayload} />);
             } else {
-                console.log(`SureBoh.ai: Adding manual button for HWZ post #${currentPostIndex + 1}.`);
+                console.log(`SureAnot.ai: Adding manual button for HWZ post #${currentPostIndex + 1}.`);
                 root.render(<AnalyzeManualButton text={analysisPayload} />);
             }
         });
@@ -163,21 +163,28 @@ const scanDOM = () => {
 
     // --- WhatsApp Logic ---
     else if (isWhatsApp) {
-        // WhatsApp Web uses .selectable-text.copyable-text for message body text
-        // [data-pre-plain-text] marks message rows with sender/time metadata
-        const allMsgRows = document.querySelectorAll(
-            '[data-pre-plain-text]:not([data-sureboh-analyzed])'
+        // confirmed via DOM inspection: .message-in and .message-out return actual message bubbles
+        // .copyable-text holds the text content inside each bubble
+        const allMsgBubbles = document.querySelectorAll(
+            '.message-in:not([data-sureanot-analyzed]), .message-out:not([data-sureanot-analyzed])'
         );
         // Limit to 3 most recent to avoid overwhelming the service worker
-        const msgRows = Array.from(allMsgRows).slice(-3);
-        console.log(`SureBoh.ai: Found ${allMsgRows.length} WhatsApp messages, analyzing ${msgRows.length} most recent.`);
+        const msgBubbles = Array.from(allMsgBubbles).slice(-3);
+        console.log(`SureAnot.ai: Found ${allMsgBubbles.length} WhatsApp messages, analyzing ${msgBubbles.length} most recent.`);
 
-        msgRows.forEach(row => {
-            const textEl = row.querySelector('.selectable-text.copyable-text');
+        msgBubbles.forEach(bubble => {
+            // Try multiple text selectors for different WhatsApp Web versions
+            const textEl = bubble.querySelector('.copyable-text') ||
+                bubble.querySelector('[data-pre-plain-text]') ||
+                bubble.querySelector('span[dir="ltr"]');
             const rawText = (textEl?.innerText || textEl?.textContent || '').trim();
+            console.log(`SureAnot.ai: WhatsApp bubble text (${rawText.length}): "${rawText.slice(0, 60)}"`);
             if (!rawText || rawText.length < 10) return;
 
-            row.setAttribute('data-sureboh-analyzed', 'true');
+            bubble.setAttribute('data-sureanot-analyzed', 'true');
+
+            // Inject after the bubble's content
+            const bubbleContent = bubble.querySelector('.copyable-area') || bubble;
 
             const container = document.createElement('div');
             container.style.position = 'relative';
@@ -187,7 +194,7 @@ const scanDOM = () => {
             container.style.clear = 'both';
             container.style.zIndex = '50';
 
-            row.appendChild(container);
+            bubbleContent.appendChild(container);
 
             const shadow = container.attachShadow({ mode: 'open' });
             const style = document.createElement('style');
@@ -207,9 +214,9 @@ const scanDOM = () => {
     else if (isReddit) {
         // Target post titles and comment content on Reddit's new UI
         const selectors = [
-            'shreddit-post:not([data-sureboh-injected])',
-            '.Comment:not([data-sureboh-injected]) p',
-            '[data-testid="post-container"]:not([data-sureboh-injected])',
+            'shreddit-post:not([data-sureanot-injected])',
+            '.Comment:not([data-sureanot-injected]) p',
+            '[data-testid="post-container"]:not([data-sureanot-injected])',
         ].join(', ');
 
         const allItems = document.querySelectorAll(selectors);
@@ -218,11 +225,11 @@ const scanDOM = () => {
             return text.length > 30;
         }).slice(-3);
 
-        console.log(`SureBoh.ai: Found ${allItems.length} Reddit items, analyzing ${items.length} most recent.`);
+        console.log(`SureAnot.ai: Found ${allItems.length} Reddit items, analyzing ${items.length} most recent.`);
 
         items.forEach(item => {
             const rawText = (item.innerText || item.textContent || '').trim().slice(0, 2000);
-            item.setAttribute('data-sureboh-injected', 'true');
+            item.setAttribute('data-sureanot-injected', 'true');
 
             const container = document.createElement('div');
             container.style.position = 'relative';
@@ -250,9 +257,9 @@ const scanDOM = () => {
     }
 
     // --- Image Scanning Logic (Cross-platform) ---
-    const images = document.querySelectorAll('img:not([data-sureboh-img-analyzed])');
+    const images = document.querySelectorAll('img:not([data-sureanot-img-analyzed])');
     images.forEach(img => {
-        img.setAttribute('data-sureboh-img-analyzed', 'true');
+        img.setAttribute('data-sureanot-img-analyzed', 'true');
         const src = img.src || '';
         const alt = img.alt || '';
 

@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "SureBoh.ai",
+  "name": "SureAnot.ai",
   "version": "1.0.0",
   "description": "Evaluates WhatsApp messages for credibility with contextual nutrition labels.",
   "permissions": [
