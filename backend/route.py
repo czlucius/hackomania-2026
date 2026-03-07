@@ -13,6 +13,7 @@ from openai import OpenAI
 from pydantic import BaseModel
 from exa_py import Exa
 from dotenv import load_dotenv
+from fastapi import HTTPException
 
 # Load environment variables from .env file
 load_dotenv()
@@ -54,7 +55,6 @@ Core Criteria for Analysis:
 4. Reduce Real-World Harm:
 - Focus on reducing panic during crises and improving clarity during local policy changes.
 - Support healthy community discussion by being a neutral, evidence-based arbiter.
->>>>>>> e72711bd13ae06df887a87b15ddbc6a21f3b3cda
 
 Multi-language Requirement:
 - You will receive a `preferred_lang` (en, zh, ms, ta).
@@ -77,6 +77,13 @@ Tool Usage:
 - Compare the message content against search results to assess credibility.
 - Consider the source, date, and relevance of articles when making your determination.
 - Specify the date of the event in relation to the message content and the message may not be a recent news
+
+
+Also, include sources:
+- Get sources from the exa_search results that are relevant to the claim. Prioritize credible sources.
+- Include the source name and URL in the `sources` field of the response. If no credible sources are found, leave the `sources` list empty.
+- If the claim is about a recent event, prioritize sources published after the event date. If the claim is about an ongoing situation, prioritize the most recent sources.
+- Never fabricate sources. If no sources are found that support the claim, it's better to have an empty `sources` list than to include irrelevant or non-credible sources.
 """
 
 logging.basicConfig(level=logging.INFO)
@@ -119,6 +126,10 @@ class InputFormat(BaseModel):
 class Translation(BaseModel):
     explanation: str
 
+class Source(BaseModel):
+    name: str
+    url: str | None = None
+
 class FakeNewsAnalysisResult(BaseModel):
     classification: (
         str  # "Likely accurate", "Unverified / uncertain", "Potentially misleading"
@@ -130,10 +141,11 @@ class FakeNewsAnalysisResult(BaseModel):
     supporting_evidence: str 
     potential_harm: str | None
     recommended_action: str
+    sources: list[Source] = []
     zh: Translation | None = None
     ms: Translation | None = None
     ta: Translation | None = None
-    community_score: int | None = None
+    community_score: int | None = None 
 
 
 analysis_cache = {}
@@ -178,6 +190,7 @@ async def check(user_request: InputFormat):
     from_user = user_request.from_user or ""
     group_chat = user_request.group_chat or False
     preferred_lang = user_request.preferred_lang or "en"
+    domain = ""
 
     # Extract score from ClickHouse if URL matches
     community_score = 0
@@ -250,7 +263,7 @@ async def check(user_request: InputFormat):
 
         # First, call OpenAI to get function call decision
         response = openai_client.chat.completions.create(
-            model="gpt-5.2",
+            model="gpt-5.3-chat-latest",
             messages=[
                 {"role": "system", "content": system_prompt_with_date},
                 {"role": "user", "content": input_prompt},
@@ -303,7 +316,7 @@ async def check(user_request: InputFormat):
 
             # Get final analysis with function results
             completion = openai_client.beta.chat.completions.parse(
-                model="gpt-5.2",
+                model="gpt-5.3-chat-latest",
                 messages=final_messages,
                 response_format=FakeNewsAnalysisResult,
             )
@@ -311,7 +324,7 @@ async def check(user_request: InputFormat):
         else:
             # No tool call needed, parse directly
             completion = openai_client.beta.chat.completions.parse(
-                model="gpt-5.2",
+                model="gpt-5.3-chat-latest",
                 messages=final_messages,
                 response_format=FakeNewsAnalysisResult,
             )
@@ -324,11 +337,12 @@ async def check(user_request: InputFormat):
         # Save to cache
         analysis_cache[content_hash] = result
 
-        # Record domain sightings in ClickHouse (Criteria: tracks domain reach even without votes)
-        if domain and ch_client:
+        # Record domain sightings in ClickHouse (tracks domain reach even without votes)
+        if source_url and domain and ch_client:
             try:
+                print("MyDomain", domain)
                 # Upsert domain record if not seen before (record sighting)
-                check_query = f"SELECT count() FROM links WHERE domain = '{domain}'"
+                check_query = f"SELECT count() FROM links WHERE domain = '{domain}'"    
                 res = ch_client.query(check_query)
                 exists = res.result_rows[0][0] > 0
                 if not exists:

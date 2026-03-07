@@ -89,7 +89,16 @@ async function analyzeWithBackend(text, url = '') {
             zh: summaryZh,
             ms: summaryMs
         },
-        sources: data.source_credibility ? [{ name: data.source_credibility, icon: "🔍", url: url }] : [],
+        sources: (data.sources || []).map(src => {
+            let faviconUrl = null;
+            if (src.url) {
+                try {
+                    const domain = new URL(src.url).hostname;
+                    faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
+                } catch (e) {}
+            }
+            return { name: src.name, url: src.url || null, faviconUrl };
+        }),
         original_explanation: data.explanation // Store for on-demand translation
     };
 }

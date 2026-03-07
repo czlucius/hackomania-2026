@@ -322,15 +322,23 @@ export function ExplainabilityTooltip({ children, assessment: initialAssessment 
                     {assessment?.sources?.length > 0 ? (
                         <div className="flex gap-1">
                             {assessment.sources.map((src, i) => {
+                                const icon = src.faviconUrl ? (
+                                    <img
+                                        src={src.faviconUrl}
+                                        alt={src.name}
+                                        className="w-4 h-4 rounded-sm object-contain"
+                                        onError={e => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement.textContent = '🔍'; }}
+                                    />
+                                ) : (src.icon || '🔍');
                                 if (src.url) {
                                     return (
                                         <a key={i} href={src.url} target="_blank" rel="noopener noreferrer" title={src.name} className="flex items-center justify-center w-6 h-6 text-base cursor-pointer bg-gray-50 rounded hover:bg-gray-100 transition-colors">
-                                            {src.icon}
+                                            {icon}
                                         </a>
                                     );
                                 }
                                 return (
-                                    <span key={i} title={src.name} className="flex items-center justify-center w-6 h-6 text-base cursor-help bg-gray-50 rounded">{src.icon}</span>
+                                    <span key={i} title={src.name} className="flex items-center justify-center w-6 h-6 text-base cursor-help bg-gray-50 rounded">{icon}</span>
                                 );
                             })}
                         </div>
