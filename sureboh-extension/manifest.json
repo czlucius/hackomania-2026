@@ -31,5 +31,21 @@
         "*://web.telegram.org/*"
       ]
     }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "assets/*.js",
+        "assets/*.css",
+        "assets/*.png",
+        "assets/*.jpg",
+        "assets/*.svg"
+      ],
+      "matches": [
+        "*://web.whatsapp.com/*",
+        "*://forums.hardwarezone.com.sg/*",
+        "*://web.telegram.org/*"
+      ]
+    }
   ]
 }

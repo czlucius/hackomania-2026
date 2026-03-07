@@ -109,21 +109,18 @@ async def check(user_request: InputFormat):
                 {type: "web_search"},
             ],"""
         # Use OpenAI SDK with structured outputs
-        completion = openai_client.responses.parse(
-            model="gpt-5.2",
-            tools=[
-                {"type": "web_search"},
-            ],
-            input=[
+        completion = openai_client.beta.chat.completions.parse(
+            model="gpt-4o-mini",
+            messages=[
                 {"role": "system", "content": SYSTEM_INSTRUCTIONS},
                 {"role": "user", "content": input_prompt},
             ],
-            text_format=FakeNewsAnalysisResult,
+            response_format=FakeNewsAnalysisResult,
         )
 
         # Extract the parsed response
-        result = completion.output_parsed
-        logger.info(f"Analysis completed: {completion.output}")
+        result = completion.choices[0].message.parsed
+        logger.info(f"Analysis completed: {completion.choices[0].message.content}")
 
         return result
 

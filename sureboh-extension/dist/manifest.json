@@ -40,6 +40,11 @@
         "*://web.whatsapp.com/*"
       ],
       "resources": [
+        "assets/*.js",
+        "assets/*.css",
+        "assets/*.png",
+        "assets/*.jpg",
+        "assets/*.svg",
         "assets/zap-BHQr4dbS.js",
         "assets/content.jsx-CW1hLUgG.js"
       ],
