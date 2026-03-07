@@ -39,16 +39,13 @@ if (chrome?.storage?.sync) {
 const scanDOM = () => {
     // --- Telegram Web Logic ---
     if (isTelegram) {
-        // Use the most specific selector for actual message text containers only
-        // Prefer .text-content which is the innermost text node — avoids matching parent .message wrappers
+        // Only target the innermost text element to avoid injecting into both parent and child
+        // .text-content is the actual text node; .message-content is its parent — only use parent as fallback
         const messages = document.querySelectorAll(
-            '.text-content:not([data-sureboh-injected]), .message-content:not([data-sureboh-injected])'
+            '.text-content:not([data-sureboh-injected])'
         );
 
         messages.forEach(msg => {
-            // Skip if a child already has our overlay to avoid double-injection on nested matches
-            if (msg.querySelector('[data-sureboh-injected]')) return;
-
             const rawText = (msg.innerText || msg.textContent || '').trim();
             if (rawText.length < 15) return;
 

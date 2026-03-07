@@ -35,7 +35,7 @@ Rules:
 
 async function analyzeWithOpenAI(text) {
     const body = {
-        model: 'gpt-4o-mini',
+        model: 'gpt-5-mini',
         temperature: 0.2,
         max_tokens: 1024,
         messages: [
