@@ -391,11 +391,8 @@ name = "gn1be"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
-<<<<<<< HEAD
     { name = "exa-py" },
-=======
     { name = "clickhouse-connect" },
->>>>>>> e72711bd13ae06df887a87b15ddbc6a21f3b3cda
     { name = "fastapi", extra = ["standard"] },
     { name = "openai" },
     { name = "openai-agents" },
@@ -403,11 +400,8 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-<<<<<<< HEAD
     { name = "exa-py", specifier = ">=2.7.0" },
-=======
     { name = "clickhouse-connect", specifier = ">=0.13.0" },
->>>>>>> e72711bd13ae06df887a87b15ddbc6a21f3b3cda
     { name = "fastapi", extras = ["standard"], specifier = ">=0.116.1" },
     { name = "openai", specifier = ">=2.26.0" },
     { name = "openai-agents", specifier = ">=0.10.5" },
