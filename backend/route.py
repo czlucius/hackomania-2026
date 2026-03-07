@@ -178,7 +178,7 @@ async def check(user_request: InputFormat):
     try:
         # Use OpenAI SDK with structured outputs
         completion = openai_client.beta.chat.completions.parse(
-            model="gpt-5-mini",
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": SYSTEM_INSTRUCTIONS},
                 {"role": "user", "content": input_prompt},
@@ -189,7 +189,7 @@ async def check(user_request: InputFormat):
         # Extract the parsed response
         result = completion.choices[0].message.parsed
         result.community_score = community_score
-        logger.info(f"Analysis completed: {completion.choices[0].message.content}")
+        logger.info(f"Analysis completed for domain: {domain}")
 
         # Save to cache
         analysis_cache[content_hash] = result
@@ -216,7 +216,7 @@ async def check(user_request: InputFormat):
 
     except Exception as e:
         logger.error(f"Error during analysis: {str(e)}")
-        raise
+        raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
 
 
 
