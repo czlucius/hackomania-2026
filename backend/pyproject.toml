@@ -1,7 +1,7 @@
 [project]
-name = "sureboh_backend"
+name = "sureanot_backend"
 version = "0.1.0"
-description = "Add your description here"
+description = "FastAPI backend for SureAnot"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [

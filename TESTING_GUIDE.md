@@ -5,7 +5,7 @@ The merge conflicts are resolved and the local backend is up and running. Here i
 ### 1. Load the Extension
 1. Open Chrome and navigate to `chrome://extensions/`
 2. Enable **Developer mode** (toggle in the top right corner).
-3. Click **Load unpacked** and select the `/Users/weidong/Documents/development/hackomania-2026/sureboh-extension/dist` folder.
+3. Click **Load unpacked** and select the `/Users/weidong/Documents/development/hackomania-2026/sureanot-extension/dist` folder.
 *Note: If you already have it loaded, click the **Reload** icon on the extension card.*
 
 ### 2. Test Image Analysis (Instagram & WhatsApp)

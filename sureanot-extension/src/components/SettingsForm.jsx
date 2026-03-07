@@ -5,6 +5,7 @@ const LANG_OPTIONS = [
     { value: 'en', label: 'English', native: 'English', flag: '🇸🇬' },
     { value: 'zh', label: 'Chinese', native: '中文 (简体)', flag: '🇨🇳' },
     { value: 'ms', label: 'Malay', native: 'Bahasa Melayu', flag: '🇲🇾' },
+    { value: 'ta', label: 'Tamil', native: 'தமிழ்', flag: '🇮🇳' },
 ];
 
 const MODE_OPTIONS = [
@@ -142,7 +143,7 @@ export function SettingsForm({ isOnboarding = false, onComplete }) {
                         onClick={onComplete}
                         className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                     >
-                        Start Using SureBoh.ai
+                        Start Using SureAnot.ai
                         <ChevronRight className="w-4 h-4" />
                     </button>
                 )}

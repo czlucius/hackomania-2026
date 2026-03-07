@@ -31,7 +31,7 @@ function Options() {
                 <div className="text-center space-y-4 max-w-sm">
                     <div className="text-5xl">🎉</div>
                     <h2 className="text-2xl font-bold text-gray-900">You're all set!</h2>
-                    <p className="text-gray-500 text-sm">Open WhatsApp Web, Telegram, or HardwareZone and SureBoh.ai will automatically start protecting you.</p>
+                    <p className="text-gray-500 text-sm">Open WhatsApp Web, Telegram, or HardwareZone and SureAnot.ai will automatically start protecting you.</p>
                     <p className="text-xs text-gray-400 mt-4">You can change settings anytime by right-clicking the extension icon → Manage Extension → Options</p>
                 </div>
             </div>
@@ -49,12 +49,12 @@ function Options() {
                     </div>
                     {isFirstRun ? (
                         <>
-                            <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Welcome to SureBoh.ai</h1>
+                            <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Welcome to SureAnot.ai</h1>
                             <p className="mt-2 text-gray-500 text-sm">Set up your preferences before getting started. You can change these anytime.</p>
                         </>
                     ) : (
                         <>
-                            <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">SureBoh.ai Settings</h1>
+                            <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">SureAnot.ai Settings</h1>
                             <p className="mt-1 text-gray-500 text-sm">Customize your fact-checking experience.</p>
                         </>
                     )}
@@ -70,7 +70,7 @@ function Options() {
 
                 {/* Footer */}
                 <p className="text-center text-xs text-gray-400 mt-6">
-                    SureBoh.ai · Made with ❤️ for Singapore at Hackomania 2026
+                    SureAnot.ai · Made with ❤️ for Singapore at Hackomania 2026
                 </p>
             </div>
         </div>

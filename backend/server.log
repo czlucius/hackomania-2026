@@ -1,0 +1,403 @@
+Installed 1 package in 6ms
+2026-03-08 05:27:08,383 - route - INFO - Connected to ClickHouse at pokdknhsax.ap-southeast-1.aws.clickhouse.cloud successfully.
+INFO:route:Connected to ClickHouse at pokdknhsax.ap-southeast-1.aws.clickhouse.cloud successfully.
+INFO:     Started server process [14677]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:53105 - "POST /api/image/check HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:27:24,464 - route - INFO - {'query': 'Singapore government giving $10,000 to all citizens tomorrow click link scam'}
+INFO:route:{'query': 'Singapore government giving $10,000 to all citizens tomorrow click link scam'}
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:27:31,243 - route - INFO - Analysis completed for query
+INFO:route:Analysis completed for query
+INFO:     127.0.0.1:53109 - "POST /api/check HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:28:27,483 - route - INFO - {'query': 'Executive condo policy to be reviewed following affordability concerns Chee Hong Tat'}
+INFO:route:{'query': 'Executive condo policy to be reviewed following affordability concerns Chee Hong Tat'}
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:28:34,003 - route - INFO - Analysis completed for query
+INFO:route:Analysis completed for query
+MyDomain forums.hardwarezone.com.sg
+2026-03-08 05:28:34,046 - route - INFO - Domain already exists in ClickHouse sighting check: forums.hardwarezone.com.sg
+INFO:route:Domain already exists in ClickHouse sighting check: forums.hardwarezone.com.sg
+INFO:     127.0.0.1:53171 - "POST /api/check HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:28:35,586 - route - INFO - {'query': 'Singapore wealth Gini 0.55 Ministry of Finance wealth inequality first ever measure 0.55'}
+INFO:route:{'query': 'Singapore wealth Gini 0.55 Ministry of Finance wealth inequality first ever measure 0.55'}
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:28:42,536 - route - INFO - Analysis completed for query
+INFO:route:Analysis completed for query
+MyDomain reddit.com
+2026-03-08 05:28:42,571 - route - INFO - Domain already exists in ClickHouse sighting check: reddit.com
+INFO:route:Domain already exists in ClickHouse sighting check: reddit.com
+INFO:     127.0.0.1:53179 - "POST /api/check HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:28:43,758 - route - INFO - {'query': 'Emirates EK314 Mar 5 Singapore residents stranded Middle East conflict Iran Israel US airspace closed flight cancellations Feb 28 Mar 1 Singapore news'}
+INFO:route:{'query': 'Emirates EK314 Mar 5 Singapore residents stranded Middle East conflict Iran Israel US airspace closed flight cancellations Feb 28 Mar 1 Singapore news'}
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:28:50,156 - route - INFO - Analysis completed for query
+INFO:route:Analysis completed for query
+MyDomain instagram.com
+2026-03-08 05:28:50,331 - route - INFO - Recorded new domain sighting in ClickHouse: instagram.com
+INFO:route:Recorded new domain sighting in ClickHouse: instagram.com
+INFO:     127.0.0.1:53171 - "POST /api/check HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:28:51,335 - route - INFO - {'query': 'Grayce Tan PLB Instagram quote You will miss this in 5 or 10 years mustsharenews Grayce Tan who is Grayce Tan PLB news'}
+INFO:route:{'query': 'Grayce Tan PLB Instagram quote You will miss this in 5 or 10 years mustsharenews Grayce Tan who is Grayce Tan PLB news'}
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:28:57,813 - route - INFO - Analysis completed for query
+INFO:route:Analysis completed for query
+MyDomain reddit.com
+2026-03-08 05:28:57,844 - route - INFO - Domain already exists in ClickHouse sighting check: reddit.com
+INFO:route:Domain already exists in ClickHouse sighting check: reddit.com
+INFO:     127.0.0.1:53181 - "POST /api/check HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:29:08,655 - route - INFO - Analysis completed for query
+INFO:route:Analysis completed for query
+MyDomain reddit.com
+2026-03-08 05:29:09,120 - route - INFO - Domain already exists in ClickHouse sighting check: reddit.com
+INFO:route:Domain already exists in ClickHouse sighting check: reddit.com
+INFO:     127.0.0.1:53179 - "POST /api/check HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:29:20,394 - route - INFO - Analysis completed for query
+INFO:route:Analysis completed for query
+MyDomain reddit.com
+2026-03-08 05:29:20,547 - route - INFO - Domain already exists in ClickHouse sighting check: reddit.com
+INFO:route:Domain already exists in ClickHouse sighting check: reddit.com
+INFO:     127.0.0.1:53182 - "POST /api/check HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:29:21,419 - route - INFO - {'query': 'Geylang Lion City Sailors 4-0 news'}
+INFO:route:{'query': 'Geylang Lion City Sailors 4-0 news'}
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:29:29,154 - route - INFO - Analysis completed for query
+INFO:route:Analysis completed for query
+MyDomain reddit.com
+2026-03-08 05:29:29,227 - route - INFO - Domain already exists in ClickHouse sighting check: reddit.com
+INFO:route:Domain already exists in ClickHouse sighting check: reddit.com
+INFO:     127.0.0.1:53181 - "POST /api/check HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:29:30,298 - route - INFO - {'query': 'Reuters wealthy Asians move Dubai assets closer to home Iran war fears 2026 Mar 6'}
+INFO:route:{'query': 'Reuters wealthy Asians move Dubai assets closer to home Iran war fears 2026 Mar 6'}
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:29:36,885 - route - INFO - Analysis completed for query
+INFO:route:Analysis completed for query
+MyDomain reddit.com
+2026-03-08 05:29:36,918 - route - INFO - Domain already exists in ClickHouse sighting check: reddit.com
+INFO:route:Domain already exists in ClickHouse sighting check: reddit.com
+INFO:     127.0.0.1:53202 - "POST /api/check HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:29:38,345 - route - INFO - {'query': 'Singapore ban caged lorries transporting workers 2027 CNA migrant workers caged lorries banned 2027'}
+INFO:route:{'query': 'Singapore ban caged lorries transporting workers 2027 CNA migrant workers caged lorries banned 2027'}
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:29:44,029 - route - INFO - Analysis completed for query
+INFO:route:Analysis completed for query
+MyDomain reddit.com
+2026-03-08 05:29:44,048 - route - INFO - Domain already exists in ClickHouse sighting check: reddit.com
+INFO:route:Domain already exists in ClickHouse sighting check: reddit.com
+INFO:     127.0.0.1:53182 - "POST /api/check HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:29:45,242 - route - INFO - {'query': 'Fewer fresh Singapore uni graduates in 2025 found full-time work but pay held steady survey Straits Times'}
+INFO:route:{'query': 'Fewer fresh Singapore uni graduates in 2025 found full-time work but pay held steady survey Straits Times'}
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:29:51,416 - route - INFO - Analysis completed for query
+INFO:route:Analysis completed for query
+MyDomain reddit.com
+2026-03-08 05:29:51,446 - route - INFO - Domain already exists in ClickHouse sighting check: reddit.com
+INFO:route:Domain already exists in ClickHouse sighting check: reddit.com
+INFO:     127.0.0.1:53203 - "POST /api/check HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:29:52,389 - route - INFO - {'query': "delivery rider left customer's $1500 arowana in car 4 hours threw dead fish rubbish chute Singapore Mothership 2026"}
+INFO:route:{'query': "delivery rider left customer's $1500 arowana in car 4 hours threw dead fish rubbish chute Singapore Mothership 2026"}
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:29:58,713 - route - ERROR - Error during analysis: 1 validation error for FakeNewsAnalysisResult
+  Invalid JSON: trailing characters at line 2 column 1 [type=json_invalid, input_value='{"classification":"Likel..."community_score":null}', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/json_invalid
+ERROR:route:Error during analysis: 1 validation error for FakeNewsAnalysisResult
+  Invalid JSON: trailing characters at line 2 column 1 [type=json_invalid, input_value='{"classification":"Likel..."community_score":null}', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/json_invalid
+INFO:     127.0.0.1:53202 - "POST /api/check HTTP/1.1" 500 Internal Server Error
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:29:59,750 - route - INFO - {'query': 'Bread stall initiative offers female ex-offenders a shot at being their own boss one day Straits Times'}
+INFO:route:{'query': 'Bread stall initiative offers female ex-offenders a shot at being their own boss one day Straits Times'}
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:30:05,733 - route - INFO - Analysis completed for query
+INFO:route:Analysis completed for query
+MyDomain reddit.com
+2026-03-08 05:30:05,762 - route - INFO - Domain already exists in ClickHouse sighting check: reddit.com
+INFO:route:Domain already exists in ClickHouse sighting check: reddit.com
+INFO:     127.0.0.1:53230 - "POST /api/check HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:30:08,104 - route - INFO - {'query': 'shrinkflation Singapore 2026 shrinkflation Singapore news'}
+INFO:route:{'query': 'shrinkflation Singapore 2026 shrinkflation Singapore news'}
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:30:14,674 - route - INFO - Analysis completed for query
+INFO:route:Analysis completed for query
+MyDomain reddit.com
+2026-03-08 05:30:14,747 - route - INFO - Domain already exists in ClickHouse sighting check: reddit.com
+INFO:route:Domain already exists in ClickHouse sighting check: reddit.com
+INFO:     127.0.0.1:53203 - "POST /api/check HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:30:15,848 - route - INFO - {'query': 'declaring mental health conditions workplace discrimination 5966131 channelnewsasia today ground-up'}
+INFO:route:{'query': 'declaring mental health conditions workplace discrimination 5966131 channelnewsasia today ground-up'}
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:30:21,706 - route - INFO - Analysis completed for query
+INFO:route:Analysis completed for query
+MyDomain reddit.com
+2026-03-08 05:30:21,724 - route - INFO - Domain already exists in ClickHouse sighting check: reddit.com
+INFO:route:Domain already exists in ClickHouse sighting check: reddit.com
+INFO:     127.0.0.1:53234 - "POST /api/check HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:30:22,736 - route - INFO - {'query': 'Channel NewsAsia Big Read university enrolment trends accountancy humanities computing 5973121 Singapore undergrad interest dwindling engineering accountancy humanities'}
+INFO:route:{'query': 'Channel NewsAsia Big Read university enrolment trends accountancy humanities computing 5973121 Singapore undergrad interest dwindling engineering accountancy humanities'}
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:30:29,057 - route - INFO - Analysis completed for query
+INFO:route:Analysis completed for query
+MyDomain reddit.com
+2026-03-08 05:30:29,152 - route - INFO - Domain already exists in ClickHouse sighting check: reddit.com
+INFO:route:Domain already exists in ClickHouse sighting check: reddit.com
+INFO:     127.0.0.1:53230 - "POST /api/check HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:30:39,444 - route - INFO - Analysis completed for query
+INFO:route:Analysis completed for query
+MyDomain reddit.com
+2026-03-08 05:30:39,641 - route - INFO - Domain already exists in ClickHouse sighting check: reddit.com
+INFO:route:Domain already exists in ClickHouse sighting check: reddit.com
+INFO:     127.0.0.1:53240 - "POST /api/check HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:30:47,942 - route - INFO - Analysis completed for query
+INFO:route:Analysis completed for query
+MyDomain reddit.com
+2026-03-08 05:30:47,972 - route - INFO - Domain already exists in ClickHouse sighting check: reddit.com
+INFO:route:Domain already exists in ClickHouse sighting check: reddit.com
+INFO:     127.0.0.1:53234 - "POST /api/check HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:30:49,342 - route - INFO - {'query': 'Mothership Singapore woman thanks MFA seamless return home Middle East tickets $600 2026'}
+INFO:route:{'query': 'Mothership Singapore woman thanks MFA seamless return home Middle East tickets $600 2026'}
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:30:56,094 - route - INFO - Analysis completed for query
+INFO:route:Analysis completed for query
+MyDomain reddit.com
+2026-03-08 05:30:56,126 - route - INFO - Domain already exists in ClickHouse sighting check: reddit.com
+INFO:route:Domain already exists in ClickHouse sighting check: reddit.com
+INFO:     127.0.0.1:53252 - "POST /api/check HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:30:57,214 - route - INFO - {'query': 'Stephanie Tan PSP marriage and parenthood reset Indranee Singapore work-life pressures housing costs caregiving burdens fertility support'}
+INFO:route:{'query': 'Stephanie Tan PSP marriage and parenthood reset Indranee Singapore work-life pressures housing costs caregiving burdens fertility support'}
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:31:06,585 - route - INFO - Analysis completed for query
+INFO:route:Analysis completed for query
+MyDomain reddit.com
+2026-03-08 05:31:06,736 - route - INFO - Domain already exists in ClickHouse sighting check: reddit.com
+INFO:route:Domain already exists in ClickHouse sighting check: reddit.com
+INFO:     127.0.0.1:53240 - "POST /api/check HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:31:07,751 - route - INFO - {'query': 'Sengkang woman 41 found dead foot of HDB block 2026 Mothership.sg fall height woman 41'}
+INFO:route:{'query': 'Sengkang woman 41 found dead foot of HDB block 2026 Mothership.sg fall height woman 41'}
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:31:15,667 - route - ERROR - Error during analysis: 1 validation error for FakeNewsAnalysisResult
+  Invalid JSON: trailing characters at line 2 column 1 [type=json_invalid, input_value='{"classification":"Unver..."community_score":null}', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/json_invalid
+ERROR:route:Error during analysis: 1 validation error for FakeNewsAnalysisResult
+  Invalid JSON: trailing characters at line 2 column 1 [type=json_invalid, input_value='{"classification":"Unver..."community_score":null}', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/json_invalid
+INFO:     127.0.0.1:53256 - "POST /api/check HTTP/1.1" 500 Internal Server Error
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:31:16,751 - route - INFO - {'query': 'Han Hui Hui children taken to hospital keep them safe MSF police Straits Times'}
+INFO:route:{'query': 'Han Hui Hui children taken to hospital keep them safe MSF police Straits Times'}
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:31:22,661 - route - INFO - Analysis completed for query
+INFO:route:Analysis completed for query
+MyDomain reddit.com
+2026-03-08 05:31:22,727 - route - INFO - Domain already exists in ClickHouse sighting check: reddit.com
+INFO:route:Domain already exists in ClickHouse sighting check: reddit.com
+INFO:     127.0.0.1:53252 - "POST /api/check HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:31:24,894 - route - INFO - {'query': 'Singapore influx wealthy migrants rich Chinese moving to Singapore 2024 2025 report refugees wealthy Singapore'}
+INFO:route:{'query': 'Singapore influx wealthy migrants rich Chinese moving to Singapore 2024 2025 report refugees wealthy Singapore'}
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:31:31,347 - route - INFO - Analysis completed for query
+INFO:route:Analysis completed for query
+MyDomain reddit.com
+2026-03-08 05:31:31,376 - route - INFO - Domain already exists in ClickHouse sighting check: reddit.com
+INFO:route:Domain already exists in ClickHouse sighting check: reddit.com
+INFO:     127.0.0.1:53260 - "POST /api/check HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:31:32,468 - route - INFO - {'query': 'Gerald Giam suggests longer hours preschool teachers AsiaOne preschool teachers speak out I only have 2 hours with my own children'}
+INFO:route:{'query': 'Gerald Giam suggests longer hours preschool teachers AsiaOne preschool teachers speak out I only have 2 hours with my own children'}
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:31:38,659 - route - INFO - Analysis completed for query
+INFO:route:Analysis completed for query
+MyDomain reddit.com
+2026-03-08 05:31:38,688 - route - INFO - Domain already exists in ClickHouse sighting check: reddit.com
+INFO:route:Domain already exists in ClickHouse sighting check: reddit.com
+INFO:     127.0.0.1:53256 - "POST /api/check HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:31:39,621 - route - INFO - {'query': 'Tom & Stefanie Hillion Mall close June 2026 rent mothership.sg tom and stefanie hillion mall closure'}
+INFO:route:{'query': 'Tom & Stefanie Hillion Mall close June 2026 rent mothership.sg tom and stefanie hillion mall closure'}
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:31:46,122 - route - ERROR - Error during analysis: 1 validation error for FakeNewsAnalysisResult
+  Invalid JSON: trailing characters at line 2 column 1 [type=json_invalid, input_value='{"classification":"Likel..."community_score":null}', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/json_invalid
+ERROR:route:Error during analysis: 1 validation error for FakeNewsAnalysisResult
+  Invalid JSON: trailing characters at line 2 column 1 [type=json_invalid, input_value='{"classification":"Likel..."community_score":null}', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/json_invalid
+INFO:     127.0.0.1:53265 - "POST /api/check HTTP/1.1" 500 Internal Server Error
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:31:54,713 - route - INFO - Analysis completed for query
+INFO:route:Analysis completed for query
+MyDomain reddit.com
+2026-03-08 05:31:54,752 - route - INFO - Domain already exists in ClickHouse sighting check: reddit.com
+INFO:route:Domain already exists in ClickHouse sighting check: reddit.com
+INFO:     127.0.0.1:53260 - "POST /api/check HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:32:04,019 - route - INFO - Analysis completed for query
+INFO:route:Analysis completed for query
+MyDomain reddit.com
+2026-03-08 05:32:04,086 - route - INFO - Domain already exists in ClickHouse sighting check: reddit.com
+INFO:route:Domain already exists in ClickHouse sighting check: reddit.com
+INFO:     127.0.0.1:53274 - "POST /api/check HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:32:05,107 - route - INFO - {'query': 'Novita Lam Iran this Israel that pun backlash Mothership influencer Novita Lam 2026'}
+INFO:route:{'query': 'Novita Lam Iran this Israel that pun backlash Mothership influencer Novita Lam 2026'}
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:32:11,070 - route - INFO - Analysis completed for query
+INFO:route:Analysis completed for query
+MyDomain reddit.com
+2026-03-08 05:32:11,099 - route - INFO - Domain already exists in ClickHouse sighting check: reddit.com
+INFO:route:Domain already exists in ClickHouse sighting check: reddit.com
+INFO:     127.0.0.1:53265 - "POST /api/check HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:32:11,967 - route - INFO - {'query': 'site:straitstimes.com first repatriation flight bringing Singaporeans home from the Middle East lands'}
+INFO:route:{'query': 'site:straitstimes.com first repatriation flight bringing Singaporeans home from the Middle East lands'}
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:32:17,728 - route - INFO - Analysis completed for query
+INFO:route:Analysis completed for query
+MyDomain reddit.com
+2026-03-08 05:32:17,765 - route - INFO - Domain already exists in ClickHouse sighting check: reddit.com
+INFO:route:Domain already exists in ClickHouse sighting check: reddit.com
+INFO:     127.0.0.1:53383 - "POST /api/check HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:32:20,238 - route - INFO - {'query': 'Singapore historic low TFR announcement 2024 2025 total fertility rate record low'}
+INFO:route:{'query': 'Singapore historic low TFR announcement 2024 2025 total fertility rate record low'}
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:32:26,178 - route - INFO - Analysis completed for query
+INFO:route:Analysis completed for query
+MyDomain reddit.com
+2026-03-08 05:32:26,207 - route - INFO - Domain already exists in ClickHouse sighting check: reddit.com
+INFO:route:Domain already exists in ClickHouse sighting check: reddit.com
+INFO:     127.0.0.1:53390 - "POST /api/check HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:32:27,119 - route - INFO - {'query': 'Reuters wealthy Asians move assets out of Dubai due to conflict Singapore destination Reuters'}
+INFO:route:{'query': 'Reuters wealthy Asians move assets out of Dubai due to conflict Singapore destination Reuters'}
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:32:33,601 - route - INFO - Analysis completed for query
+INFO:route:Analysis completed for query
+MyDomain forums.hardwarezone.com.sg
+2026-03-08 05:32:33,631 - route - INFO - Domain already exists in ClickHouse sighting check: forums.hardwarezone.com.sg
+INFO:route:Domain already exists in ClickHouse sighting check: forums.hardwarezone.com.sg
+INFO:     127.0.0.1:53383 - "POST /api/check HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:32:34,803 - route - INFO - {'query': 'Masoud Pezeshkian apologise neighbouring countries suspension attacks Reuters Iran temporary leadership council neighbouring countries attack unless attack from there'}
+INFO:route:{'query': 'Masoud Pezeshkian apologise neighbouring countries suspension attacks Reuters Iran temporary leadership council neighbouring countries attack unless attack from there'}
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:32:42,060 - route - INFO - Analysis completed for query
+INFO:route:Analysis completed for query
+MyDomain instagram.com
+2026-03-08 05:32:42,098 - route - INFO - Domain already exists in ClickHouse sighting check: instagram.com
+INFO:route:Domain already exists in ClickHouse sighting check: instagram.com
+INFO:     127.0.0.1:53415 - "POST /api/check HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:32:43,117 - route - INFO - {'query': 'Reuters wealthy Asians move assets out of Dubai conflict Singapore destination'}
+INFO:route:{'query': 'Reuters wealthy Asians move assets out of Dubai conflict Singapore destination'}
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:32:49,406 - route - INFO - Analysis completed for query
+INFO:route:Analysis completed for query
+MyDomain forums.hardwarezone.com.sg
+2026-03-08 05:32:49,446 - route - INFO - Domain already exists in ClickHouse sighting check: forums.hardwarezone.com.sg
+INFO:route:Domain already exists in ClickHouse sighting check: forums.hardwarezone.com.sg
+INFO:     127.0.0.1:53390 - "POST /api/check HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:32:58,959 - route - INFO - Analysis completed for query
+INFO:route:Analysis completed for query
+MyDomain forums.hardwarezone.com.sg
+2026-03-08 05:32:59,056 - route - INFO - Domain already exists in ClickHouse sighting check: forums.hardwarezone.com.sg
+INFO:route:Domain already exists in ClickHouse sighting check: forums.hardwarezone.com.sg
+INFO:     127.0.0.1:53383 - "POST /api/check HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:33:53,990 - route - INFO - {'query': 'Jurong West resident makes police report after catching neighbour taking valve from his water meter stomp.sg'}
+INFO:route:{'query': 'Jurong West resident makes police report after catching neighbour taking valve from his water meter stomp.sg'}
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:34:00,916 - route - INFO - Analysis completed for query
+INFO:route:Analysis completed for query
+MyDomain forums.hardwarezone.com.sg
+2026-03-08 05:34:00,986 - route - INFO - Domain already exists in ClickHouse sighting check: forums.hardwarezone.com.sg
+INFO:route:Domain already exists in ClickHouse sighting check: forums.hardwarezone.com.sg
+INFO:     127.0.0.1:53528 - "POST /api/check HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:34:02,454 - route - INFO - {'query': 'Jurong West resident makes police report after catching neighbour taking valve from his water meter'}
+INFO:route:{'query': 'Jurong West resident makes police report after catching neighbour taking valve from his water meter'}
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:34:07,544 - route - INFO - Analysis completed for query
+INFO:route:Analysis completed for query
+MyDomain forums.hardwarezone.com.sg
+2026-03-08 05:34:07,566 - route - INFO - Domain already exists in ClickHouse sighting check: forums.hardwarezone.com.sg
+INFO:route:Domain already exists in ClickHouse sighting check: forums.hardwarezone.com.sg
+INFO:     127.0.0.1:53537 - "POST /api/check HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:34:17,044 - route - INFO - Analysis completed for query
+INFO:route:Analysis completed for query
+MyDomain forums.hardwarezone.com.sg
+2026-03-08 05:34:17,066 - route - INFO - Domain already exists in ClickHouse sighting check: forums.hardwarezone.com.sg
+INFO:route:Domain already exists in ClickHouse sighting check: forums.hardwarezone.com.sg
+INFO:     127.0.0.1:53539 - "POST /api/check HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:34:56,758 - route - INFO - Analysis completed for query
+INFO:route:Analysis completed for query
+MyDomain forums.hardwarezone.com.sg
+2026-03-08 05:34:56,919 - route - INFO - Domain already exists in ClickHouse sighting check: forums.hardwarezone.com.sg
+INFO:route:Domain already exists in ClickHouse sighting check: forums.hardwarezone.com.sg
+INFO:     127.0.0.1:53560 - "POST /api/check HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:35:11,463 - route - INFO - {'query': 'House+ Bubble spa Singapore pool closure CNA Lifestyle House Bubble 579196'}
+INFO:route:{'query': 'House+ Bubble spa Singapore pool closure CNA Lifestyle House Bubble 579196'}
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:35:17,029 - route - INFO - Analysis completed for query
+INFO:route:Analysis completed for query
+MyDomain forums.hardwarezone.com.sg
+2026-03-08 05:35:17,061 - route - INFO - Domain already exists in ClickHouse sighting check: forums.hardwarezone.com.sg
+INFO:route:Domain already exists in ClickHouse sighting check: forums.hardwarezone.com.sg
+INFO:     127.0.0.1:53590 - "POST /api/check HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:35:17,956 - route - INFO - {'query': 'House+ Bubble spa operator temporary closure bathing pools internal facility adjustments CNA'}
+INFO:route:{'query': 'House+ Bubble spa operator temporary closure bathing pools internal facility adjustments CNA'}
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:35:23,749 - route - INFO - Analysis completed for query
+INFO:route:Analysis completed for query
+MyDomain forums.hardwarezone.com.sg
+2026-03-08 05:35:23,824 - route - INFO - Domain already exists in ClickHouse sighting check: forums.hardwarezone.com.sg
+INFO:route:Domain already exists in ClickHouse sighting check: forums.hardwarezone.com.sg
+INFO:     127.0.0.1:53598 - "POST /api/check HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:35:25,838 - route - INFO - {'query': 'House+ Bubble spa operator temporary closure bathing pools internal facility adjustments CNA Singapore House+ Bubble'}
+INFO:route:{'query': 'House+ Bubble spa operator temporary closure bathing pools internal facility adjustments CNA Singapore House+ Bubble'}
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-08 05:35:31,686 - route - INFO - Analysis completed for query
+INFO:route:Analysis completed for query
+MyDomain forums.hardwarezone.com.sg
+2026-03-08 05:35:31,713 - route - INFO - Domain already exists in ClickHouse sighting check: forums.hardwarezone.com.sg
+INFO:route:Domain already exists in ClickHouse sighting check: forums.hardwarezone.com.sg
+INFO:     127.0.0.1:53600 - "POST /api/check HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:53612 - "POST /api/translate HTTP/1.1" 200 OK
