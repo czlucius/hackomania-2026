@@ -1,6 +1,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { InjectedOverlay } from './components/InjectedOverlay';
+import { HWZAnalyzeButton } from './components/HWZAnalyzeButton';
 import cssText from './index.css?inline';
 
 const isHWZ = window.location.hostname.includes('hardwarezone');
@@ -111,7 +112,7 @@ const scanDOM = () => {
             shadow.appendChild(reactRoot);
 
             const root = createRoot(reactRoot);
-            root.render(<InjectedOverlay text={rawText} />);
+            root.render(<HWZAnalyzeButton text={rawText} />);
         });
     }
 
