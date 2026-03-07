@@ -8,19 +8,22 @@
   ],
   "host_permissions": [
     "*://web.whatsapp.com/*",
-    "*://forums.hardwarezone.com.sg/*"
+    "*://forums.hardwarezone.com.sg/*",
+    "*://web.telegram.org/*"
   ],
   "background": {
-    "service_worker": "src/background.js"
+    "service_worker": "src/background.js",
+    "type": "module"
   },
   "content_scripts": [
     {
-      "matches": [
-        "*://web.whatsapp.com/*",
-        "*://forums.hardwarezone.com.sg/*"
-      ],
       "js": [
         "src/content.jsx"
+      ],
+      "matches": [
+        "*://web.whatsapp.com/*",
+        "*://forums.hardwarezone.com.sg/*",
+        "*://web.telegram.org/*"
       ]
     }
   ]

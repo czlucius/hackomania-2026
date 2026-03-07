@@ -4,12 +4,57 @@ import { InjectedOverlay } from './components/InjectedOverlay';
 import cssText from './index.css?inline';
 
 const isHWZ = window.location.hostname.includes('hardwarezone');
+const isTelegram = window.location.hostname.includes('telegram');
 
-console.log(`SureBoh.ai Content Script Loaded! Listening for ${isHWZ ? 'HardwareZone' : 'WhatsApp'} messages...`);
+let platformName = 'WhatsApp';
+if (isHWZ) platformName = 'HardwareZone';
+if (isTelegram) platformName = 'Telegram Web';
+
+console.log(`SureBoh.ai Content Script Loaded! Listening for ${platformName} messages...`);
 
 const scanDOM = () => {
+    // --- Telegram Web Logic ---
+    if (isTelegram) {
+        // Telegram often uses .text-content inside .message
+        const messages = document.querySelectorAll('.message-content, .text-content, [class*="text-content"]');
+        messages.forEach(msg => {
+            if (msg.hasAttribute('data-sureboh-analyzed')) return;
+
+            const rawText = msg.innerText;
+            if (!rawText || rawText.length < 15) return;
+
+            msg.setAttribute('data-sureboh-analyzed', 'true');
+
+            if (getComputedStyle(msg).position === 'static') {
+                msg.style.position = 'relative';
+            }
+
+            const container = document.createElement('div');
+            container.style.position = 'relative';
+            container.style.marginTop = '4px';
+            container.style.display = 'block';
+            container.style.width = '100%';
+            container.style.clear = 'both';
+            container.style.zIndex = '50';
+
+            msg.appendChild(container);
+
+            const shadow = container.attachShadow({ mode: 'open' });
+            const style = document.createElement('style');
+            style.textContent = cssText;
+            shadow.appendChild(style);
+
+            const reactRoot = document.createElement('div');
+            reactRoot.style.width = '100%';
+            shadow.appendChild(reactRoot);
+
+            const root = createRoot(reactRoot);
+            root.render(<InjectedOverlay text={rawText} />);
+        });
+    }
+
     // --- HardwareZone Logic ---
-    if (isHWZ) {
+    else if (isHWZ) {
         console.log("SureBoh.ai: Scanning HWZ DOM...");
         // HWZ uses class 'post-content' or similar for forum posts
         const posts = document.querySelectorAll('.post-content:not([data-sureboh-analyzed]), .bbWrapper:not([data-sureboh-analyzed])');
