@@ -10,12 +10,14 @@ const isTelegram = window.location.hostname.includes('telegram');
 const isWhatsApp = window.location.hostname.includes('whatsapp');
 const isReddit = window.location.hostname.includes('reddit') &&
     window.location.pathname.toLowerCase().match(/^\/r\/(singapore|asksingapore|singaporeraw)\b/);
+const isInstagram = window.location.hostname.includes('instagram');
 
 let platformName = 'Unknown';
 if (isWhatsApp) platformName = 'WhatsApp';
 if (isHWZ) platformName = 'HardwareZone';
 if (isTelegram) platformName = 'Telegram Web';
 if (isReddit) platformName = 'Reddit';
+if (isInstagram) platformName = 'Instagram';
 
 console.log(`SureAnot.ai Content Script Loaded! Listening for ${platformName} messages...`);
 

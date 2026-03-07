@@ -1,5 +1,12 @@
 // background.js - Analysis is now handled by the Python backend
 
+// Open settings page on first install for onboarding
+chrome.runtime.onInstalled.addListener((details) => {
+    if (details.reason === 'install') {
+        chrome.runtime.openOptionsPage();
+    }
+});
+
 async function analyzeWithBackend(text, url = '') {
     // Get user language preference from storage
     const settings = await chrome.storage.sync.get(['kampungLang']);
@@ -163,17 +170,20 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         return true;
 
     } else if (request.type === 'ANALYZE_IMAGE') {
-        const { src, alt } = request;
-        let response = null;
-        const textToAnalyze = (src + " " + alt).toLowerCase();
+        const { src } = request;
 
-        if (textToAnalyze.includes('ai-generated') || textToAnalyze.includes('midjourney') || textToAnalyze.includes('deepfake')) {
-            response = { warning: "Potential AI-generated or manipulated image detected. Verify the source." };
-        } else if (textToAnalyze.includes('scam') || textToAnalyze.includes('phishing')) {
-            response = { warning: "This image contains patterns associated with known phishing campaigns." };
-        }
+        fetch('http://localhost:8000/api/image/check', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image_url: src })
+        })
+            .then(res => res.json())
+            .then(data => sendResponse({ warning: data.warning }))
+            .catch(err => {
+                console.error('Image analysis failed:', err);
+                sendResponse({ warning: null });
+            });
 
-        setTimeout(() => sendResponse(response), 800);
         return true;
     }
 });

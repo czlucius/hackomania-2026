@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import route
+import image_route
 from dotenv import load_dotenv
 
 # Load environment variables at the entry point
@@ -23,3 +24,5 @@ async def hello():
     return {"message": "Hello World"}
 
 app.include_router(router=route.router, prefix="/api")
+app.include_router(router=image_route.router, prefix="/api")
+
