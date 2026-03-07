@@ -26,6 +26,10 @@
     "page": "src/options.html",
     "open_in_tab": true
   },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "SureAnot Verification"
+  },
   "content_scripts": [
     {
       "js": [

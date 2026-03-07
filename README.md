@@ -1,6 +1,6 @@
-# SureBoh.ai
+# SureAnot.ai
 
-SureBoh.ai is a full-stack, multilingual fact-checking assistant built for the Singaporean context. It seamlessly integrates into popular social platforms to evaluate claims for credibility and provides highly contextual "nutrition labels" for information—without breaking the host site's UI.
+SureAnot.ai is a full-stack, multilingual fact-checking assistant built for the Singaporean context. It seamlessly integrates into popular social platforms to evaluate claims for credibility and provides highly contextual "nutrition labels" for information—without breaking the host site's UI.
 # SureAnot.ai
 
 SureAnot.ai is a full-stack, multilingual fact-checking assistant built for the Singaporean context. It seamlessly integrates into popular social platforms to evaluate claims for credibility and provides highly contextual "nutrition labels" for information—without breaking the host site's UI.
