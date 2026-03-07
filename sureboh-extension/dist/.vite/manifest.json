@@ -5,22 +5,22 @@
     "src": "../../../../../../@crx/manifest",
     "isEntry": true
   },
-  "_content.jsx-loader-DyUgJPmO.js": {
-    "file": "assets/content.jsx-loader-DyUgJPmO.js",
-    "src": "_content.jsx-loader-DyUgJPmO.js"
+  "_content.jsx-loader-BxVN1_np.js": {
+    "file": "assets/content.jsx-loader-BxVN1_np.js",
+    "src": "_content.jsx-loader-BxVN1_np.js"
   },
   "_zap-BHQr4dbS.js": {
     "file": "assets/zap-BHQr4dbS.js",
     "name": "zap"
   },
   "src/background.js": {
-    "file": "assets/background.js-CcXtSoK5.js",
+    "file": "assets/background.js-D4bfIl8m.js",
     "name": "background.js",
     "src": "src/background.js",
     "isEntry": true
   },
   "src/content.jsx": {
-    "file": "assets/content.jsx-Bgn94f_-.js",
+    "file": "assets/content.jsx-BOKoXZNb.js",
     "name": "content.jsx",
     "src": "src/content.jsx",
     "isEntry": true,
@@ -29,7 +29,7 @@
     ]
   },
   "src/options.html": {
-    "file": "assets/options.html-iN4f58Tj.js",
+    "file": "assets/options.html-Bu2RG0bw.js",
     "name": "options.html",
     "src": "src/options.html",
     "isEntry": true,
@@ -37,7 +37,7 @@
       "_zap-BHQr4dbS.js"
     ],
     "css": [
-      "assets/options-Dee2B-_r.css"
+      "assets/options-D-DOh-NK.css"
     ]
   }
 }
