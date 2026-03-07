@@ -193,7 +193,7 @@ async def check(user_request: InputFormat):
             completion = call_model("gpt-5-mini")
         except Exception as e:
             logger.warning(f"gpt-5-mini failed ({e}), falling back to gpt-4o-mini")
-            completion = call_model("gpt-4o-mini")
+            completion = call_model("gpt-4-mini")
 
         # Extract the parsed response
         result = completion.choices[0].message.parsed
