@@ -30,11 +30,14 @@ const scanDOM = () => {
             }
 
             const container = document.createElement('div');
-            container.style.position = 'absolute';
-            container.style.inset = '0';
-            container.style.pointerEvents = 'none';
+            // Flow normally at the bottom of the post
+            container.style.position = 'relative';
+            container.style.marginTop = '12px';
+            container.style.marginBottom = '8px';
+            container.style.display = 'block';
+            container.style.width = '100%';
+            container.style.clear = 'both';
             container.style.zIndex = '50';
-            container.style.borderRadius = '8px';
 
             post.appendChild(container);
 
@@ -44,7 +47,6 @@ const scanDOM = () => {
             shadow.appendChild(style);
 
             const reactRoot = document.createElement('div');
-            reactRoot.style.height = '100%';
             reactRoot.style.width = '100%';
             shadow.appendChild(reactRoot);
 
@@ -78,12 +80,13 @@ const scanDOM = () => {
                 }
 
                 const container = document.createElement('div');
-                container.style.position = 'absolute';
-                // Apply a tiny negative inset to cover the exact text geometry without bleeding into flex layouts
-                container.style.inset = '-4px';
-                container.style.pointerEvents = 'none';
+                // Flow normally at the bottom of the message text
+                container.style.position = 'relative';
+                container.style.marginTop = '4px';
+                container.style.display = 'block';
+                container.style.width = '100%';
+                container.style.clear = 'both';
                 container.style.zIndex = '50';
-                container.style.borderRadius = '4px';
 
                 targetContainer.appendChild(container);
 
@@ -94,7 +97,6 @@ const scanDOM = () => {
                 shadow.appendChild(style);
 
                 const reactRoot = document.createElement('div');
-                reactRoot.style.height = '100%';
                 reactRoot.style.width = '100%';
                 shadow.appendChild(reactRoot);
 
