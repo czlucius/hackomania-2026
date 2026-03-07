@@ -335,6 +335,9 @@ const scanDOM = () => {
     } else if (isTelegram) {
         // Target images inside chat messages only (skipping avatars/UI)
         imgSelector = '.message img:not([data-sureanot-img-analyzed]), .bubble-content img:not([data-sureanot-img-analyzed]), .media-photo img:not([data-sureanot-img-analyzed]), .message-media img:not([data-sureanot-img-analyzed]), [class*="message"] img:not([data-sureanot-img-analyzed]), .MessageMedia img:not([data-sureanot-img-analyzed])';
+    } else if (isWhatsApp) {
+        // Target images inside WhatsApp chat bubbles
+        imgSelector = '.message-in img:not([data-sureanot-img-analyzed]), .message-out img:not([data-sureanot-img-analyzed]), [data-testid="msg-container"] img:not([data-sureanot-img-analyzed])';
     }
 
     const images = document.querySelectorAll(imgSelector);
@@ -371,8 +374,8 @@ const scanDOM = () => {
 
         // Build the chrome message once; the React component sends it internally
         let chromeMessage;
-        if (src.startsWith('blob:') || isTelegram) {
-            // For Telegram Web heavily reliant on blob URIs, prefer base64 conversion
+        if (src.startsWith('blob:') || isTelegram || isWhatsApp) {
+            // For Telegram and WhatsApp heavily reliant on blob URIs, prefer base64 conversion
             // This is crucial as the blob: URL won't be accessible by our backend directly.
             const b64data = imgToBase64(img);
             if (!b64data) return; // tainted canvas — skip
