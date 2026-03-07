@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Telegram Fake News Checker - Test Page</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      color: white;
+      margin-bottom: 40px;
+    }
+
+    .header h1 {
+      font-size: 36px;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      font-size: 18px;
+      opacity: 0.9;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      margin-bottom: 30px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .card h2 {
+      color: #667eea;
+      margin-bottom: 20px;
+      font-size: 24px;
+    }
+
+    .card h3 {
+      color: #495057;
+      margin: 20px 0 10px 0;
+      font-size: 18px;
+    }
+
+    .info-box {
+      background: #e7f3ff;
+      border-left: 4px solid #2196F3;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+
+    .warning-box {
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+
+    .success-box {
+      background: #d4edda;
+      border-left: 4px solid #28a745;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+
+    .test-message {
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 15px 0;
+      position: relative;
+    }
+
+    .test-message .label {
+      position: absolute;
+      top: -10px;
+      left: 15px;
+      background: #667eea;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .test-message.high .label {
+      background: #dc3545;
+    }
+
+    .test-message.medium .label {
+      background: #ff6600;
+    }
+
+    .test-message.low .label {
+      background: #ffc107;
+    }
+
+    .test-message.clean .label {
+      background: #28a745;
+    }
+
+    .test-message p {
+      margin-top: 10px;
+      line-height: 1.6;
+      color: #333;
+    }
+
+    .instructions {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      margin-bottom: 30px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .instructions ol {
+      margin-left: 20px;
+      line-height: 1.8;
+    }
+
+    .instructions li {
+      margin: 10px 0;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .feature-item {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid #dee2e6;
+    }
+
+    .feature-item h4 {
+      color: #667eea;
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+
+    .feature-item p {
+      font-size: 14px;
+      color: #666;
+      line-height: 1.5;
+    }
+
+    code {
+      background: #f4f4f4;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+    }
+
+    .footer {
+      text-align: center;
+      color: white;
+      margin-top: 40px;
+      padding: 20px;
+    }
+
+    .footer a {
+      color: white;
+      text-decoration: underline;
+    }
+
+    .stats {
+      display: flex;
+      gap: 20px;
+      margin: 20px 0;
+      flex-wrap: wrap;
+    }
+
+    .stat-box {
+      flex: 1;
+      min-width: 200px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .stat-box .number {
+      font-size: 36px;
+      font-weight: 700;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .stat-box .label {
+      font-size: 14px;
+      opacity: 0.9;
+      position: static;
+      background: none;
+      padding: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🛡️ Telegram Fake News Checker</h1>
+      <p>Test Page & Documentation</p>
+    </div>
+
+    <div class="instructions">
+      <h2>📋 How to Use This Test Page</h2>
+      <div class="warning-box">
+        <strong>⚠️ Important:</strong> This extension only works on <code>web.telegram.org</code>. This test page is for documentation and understanding the extension's behavior.
+      </div>
+
+      <h3>Installation Steps:</h3>
+      <ol>
+        <li>Generate icon files (see <code>INSTALLATION.md</code>)</li>
+        <li>Load extension in Chrome: <code>chrome://extensions/</code></li>
+        <li>Enable Developer Mode (toggle in top-right)</li>
+        <li>Click "Load unpacked" and select <code>hackomania2026</code> folder</li>
+        <li>Navigate to <a href="https://web.telegram.org" target="_blank">web.telegram.org</a></li>
+        <li>Open any chat and observe message analysis</li>
+      </ol>
+
+      <h3>Testing the Extension:</h3>
+      <p>Copy the test messages below and send them to yourself on Telegram Web to see how the extension detects different risk levels.</p>
+    </div>
+
+    <div class="card">
+      <h2></h2>🧪 Test Messages</h2>
+      <p></p>Use these messages to test the fake news detection. Copy and paste them into Telegram Web chats.</p>
+
+      <div class="test-message high">
+        <span class="label">High Risk (70-100%)</span>
+        <p>
+          URGENT!!! BREAKING NEWS!!! Scientists HATE this one WEIRD TRICK that doctors don't want you to KNOW!!!
+          This SHOCKING discovery will BLOW YOUR MIND!!! The government is trying to HIDE this TERRIFYING truth!!!
+          SHARE NOW before it gets DELETED!!! Click here: bit.ly/fake123 and tinyurl.com/scam456
+          You won't BELIEVE what happens next!!!
+        </p>
+      </div>
+
+      <div class="test-message medium">
+        <span class="label">Medium Risk (40-69%)</span>
+        <p>
+          Breaking: New miracle cure discovered! This amazing treatment will change everything!
+          Doctors are shocked by these unbelievable results!!! Sources claim this could be the answer we've been looking for.
+          Must read! Share this incredible information now! Click to learn more!!!
+        </p>
+      </div>
+
+      <div class="test-message low">
+        <span class="label">Low Risk (0-39%)</span>
+        <p>
+          New study suggests potential health benefits. The research indicates interesting findings, though more investigation needed.
+          Some experts believe this could be significant. Check out the full report for more details.
+        </p>
+      </div>
+
+      <div class="test-message clean">
+        <span class="label">Clean / Low Risk</span>
+        <p>
+          According to a peer-reviewed study published in Nature Medicine by researchers at Stanford University,
+          new findings indicate measurable improvements in patient outcomes. The research, which was conducted over
+          a three-year period with proper controls, suggests potential applications in clinical settings.
+          Dr. Smith stated, "These results align with previous research in the field."
+          Full study: doi.org/10.1234/nature.2024
+        </p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🎯 Detection Criteria</h2>
+      <p>The extension analyzes messages based on multiple factors:</p>
+
+      <div class="feature-grid">
+        <div class="feature-item">
+          <h4>🔍 Suspicious Keywords</h4>
+          <p>Detects words like "breaking", "urgent", "shocking", "they don't want you to know", "miracle", "secret"</p>
+        </div>
+
+        <div class="feature-item">
+          <h4>📢 Excessive Caps</h4>
+          <p>Flags messages with more than 30% capital letters (SHOUTING)</p>
+        </div>
+
+        <div class="feature-item">
+          <h4>❗ Punctuation Abuse</h4></h4>
+          <p>Identifies excessive use of exclamation or question marks (!!!, ???)</p>
+        </div>
+
+        <div class="feature-item">
+          <h4>😱 Emotional Language</h4>
+          <p>Detects emotionally manipulative words designed to provoke strong reactions</p>
+        </div>
+
+        <div class="feature-item">
+          <h4>🔗 Suspicious URLs</h4>
+          <p>Flags shortened URLs (bit.ly, tinyurl) and unreliable domains</p>
+        </div>
+
+        <div class="feature-item">
+          <h4>📰 Missing Sources</h4>
+          <p>Identifies claims without credible source citations or references</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>⚙️ Features</h2>
+
+      <div class="success-box">
+        <strong>✅ Real-time Analysis:</strong> Messages are analyzed as they appear in your chats
+      </div>
+
+      <div class="success-box">
+        <strong>✅ Visual Indicators:</strong> Color-coded warnings (🚫 High, ⚠️ Medium, ℹ️ Low)
+      </div>
+
+      <div class="success-box">
+        <strong>✅ Detailed Explanations:</strong> Click "Details" to see why a message was flagged
+      </div>
+
+      <div class="success-box">
+        <strong>✅ External Verification:</strong> Optional fact-checking with Google and NewsAPI
+      </div>
+
+      <div class="success-box">
+        <strong>✅ Two Modes:</strong> Automatic (continuous) or Manual (on-demand) checking
+      </div>
+
+      <div class="success-box">
+        <strong>✅ Privacy-Focused:</strong> All analysis done locally, no data collection
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📊 Expected Results</h2>
+
+      <h3>High Risk Messages (70-100%):</h3>
+      <ul>
+        <li>Multiple suspicious keywords (5+ matches)</li>
+        <li>Heavy use of ALL CAPS</li>
+        <li>Excessive punctuation (!!!, ???)</li>
+        <li>Emotional manipulation words</li>
+        <li>Shortened or suspicious URLs</li>
+        <li>Claims without sources</li>
+        <li><strong>Result:</strong> Red 🚫 warning badge</li>
+      </ul>
+
+      <h3>Medium Risk Messages (40-69%):</h3>
+      <ul>
+        <li>Some suspicious keywords (2-4 matches)</li>
+        <li>Moderate sensationalism</li>
+        <li>Some emotional language</li>
+        <li>Possible source issues</li>
+        <li><strong>Result:</strong> Orange ⚠️ warning badge</li>
+      </ul>
+
+      <h3>Low Risk Messages (0-39%):</h3>
+      <ul>
+        <li>Minor concerns (1-2 warning signs)</li>
+        <li>Mostly neutral language</li>
+        <li>May include credible sources</li>
+        <li><strong>Result:</strong> Yellow ℹ️ info badge or no warning</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>🔧 Configuration</h2>
+      <p>Click the extension icon in your Chrome toolbar to access:</p>
+
+      <h3>Basic Settings:</h3>
+      <ul>
+        <li><strong>Enable Protection:</strong> Toggle extension on/off</li>
+        <li><strong>Checking Mode:</strong> Automatic (continuous) or Manual (on-demand)</li>
+      </ul>
+
+      <h3>API Integration (Optional):</h3>
+      <ul>
+        <li><strong>Google Fact Check Tools API:</strong> Verify claims against known fact-checks</li>
+        <li><strong>NewsAPI:</strong> Check if claims appear in mainstream news</li>
+      </ul>
+
+      <h3>Statistics:</h3>
+      <ul>
+        <li>Messages Checked: Total analyzed</li>
+        <li>Messages Flagged: Total with warnings</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>⚠️ Important Notes</h2>
+
+      <div class="warning-box">
+        <strong>Not Perfect:</strong> This tool provides guidance, not absolute truth. Always verify important information from multiple credible sources.
+      </div>
+
+      <div class="warning-box">
+        <strong>False Positives:</strong> Some legitimate messages may be flagged due to language patterns. Use your judgment.
+      </div>
+
+      <div class="warning-box">
+        <strong>False Negatives:</strong> Sophisticated misinformation may not be detected. Stay critical!
+      </div>
+
+      <div class="info-box">
+        <strong>Privacy:</strong> All analysis is performed locally in your browser. No data is collected unless you use external API features.
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📚 Additional Resources</h2>
+      <ul>
+        <li><strong>README.md:</strong> Complete documentation and feature list</li>
+        <li><strong>INSTALLATION.md:</strong> Detailed installation and setup guide</li>
+        <li><strong>images/README.md:</strong> Icon creation instructions</li>
+        <li><strong>GitHub:</strong> Report issues and contribute</li>
+      </ul>
+    </div>
+
+    <div class="stats">
+      <div class="stat-box">
+        <span class="number">5+</span>
+        <span class="label">Detection Criteria</span>
+      </div>
+      <div class="stat-box">
+        <span class="number">2</span>
+        <span class="label">Checking Modes</span>
+      </div>
+      <div class="stat-box">
+        <span class="number">100%</span>
+        <span class="label">Open Source</span>
+      </div>
+      <div class="stat-box">
+        <span class="number">0</span>
+        <span class="label">Data Collection</span>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>🛡️ Telegram Fake News Checker v1.0.0</p>
+      <p>Created for Hackomania 2026</p>
+      <p><a href="https://github.com/yourusername/telegram-fake-news-checker">View on GitHub</a></p>
+      <p style="margin-top: 20px; font-size: 14px; opacity: 0.8;">
+        Stay informed. Think critically. Verify sources.
+      </p>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,90 @@
+{
+  "apiKeys": {
+    "google": "YOUR_GOOGLE_FACT_CHECK_API_KEY_HERE",
+    "newsapi": "YOUR_NEWSAPI_KEY_HERE"
+  },
+  "settings": {
+    "enabled": true,
+    "checkingMode": "automatic",
+    "minTextLength": 50,
+    "autoCheckThreshold": 50
+  },
+  "detection": {
+    "suspiciousKeywords": [
+      "breaking",
+      "urgent",
+      "shocking",
+      "miracle",
+      "secret",
+      "they don't want you to know",
+      "scientists hate",
+      "doctors hate",
+      "one weird trick",
+      "you won't believe",
+      "click here",
+      "share now",
+      "this will blow your mind",
+      "must read",
+      "must watch",
+      "viral"
+    ],
+    "emotionalWords": [
+      "shocking",
+      "terrifying",
+      "amazing",
+      "unbelievable",
+      "incredible",
+      "outrageous"
+    ],
+    "riskThresholds": {
+      "low": 39,
+      "medium": 69,
+      "high": 70
+    },
+    "scoring": {
+      "keywordWeight": 15,
+      "maxKeywordScore": 40,
+      "capsWeight": 20,
+      "capsThreshold": 0.3,
+      "punctuationWeight": 15,
+      "emotionalWeight": 10,
+      "urlWeight": 10,
+      "unverifiedClaimWeight": 15
+    }
+  },
+  "appearance": {
+    "colors": {
+      "low": "#ffc107",
+      "medium": "#ff6600",
+      "high": "#dc3545"
+    },
+    "icons": {
+      "low": "ℹ️",
+      "medium": "⚠️",
+      "high": "🚫"
+    }
+  },
+  "cache": {
+    "enabled": true,
+    "duration": 86400000,
+    "maxSize": 100
+  },
+  "apis": {
+    "google": {
+      "enabled": false,
+      "endpoint": "https://factchecktools.googleapis.com/v1alpha1/claims:search",
+      "timeout": 5000
+    },
+    "newsapi": {
+      "enabled": false,
+      "endpoint": "https://newsapi.org/v2/everything",
+      "timeout": 5000,
+      "maxResults": 5
+    }
+  },
+  "privacy": {
+    "collectStatistics": true,
+    "shareAnalytics": false,
+    "storageType": "local"
+  }
+}

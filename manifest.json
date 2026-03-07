@@ -1,0 +1,40 @@
+{
+  "manifest_version": 3,
+  "name": "Telegram Fake News Checker",
+  "description": "Detects and checks potentially fake news in your Telegram Web chats",
+  "version": "1.0.0",
+  "icons": {
+    "16": "images/icon-16.png",
+    "32": "images/icon-32.png",
+    "48": "images/icon-48.png",
+    "128": "images/icon-128.png"
+  },
+  "background": {
+    "service_worker": "service-worker.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "images/icon-16.png",
+      "32": "images/icon-32.png",
+      "48": "images/icon-48.png",
+      "128": "images/icon-128.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://web.telegram.org/*"],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_end"
+    }
+  ],
+  "permissions": ["storage", "activeTab"],
+  "host_permissions": ["https://web.telegram.org/*"],
+  "web_accessible_resources": [
+    {
+      "resources": ["images/*.png"],
+      "matches": ["https://web.telegram.org/*"]
+    }
+  ]
+}

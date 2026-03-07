@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Telegram Fake News Checker</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 350px;
+      min-height: 400px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #333;
+      padding: 0;
+    }
+
+    .header {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 20px;
+      text-align: center;
+      border-bottom: 3px solid #667eea;
+    }
+
+    .header h1 {
+      font-size: 18px;
+      color: #333;
+      margin-bottom: 5px;
+    }
+
+    .header p {
+      font-size: 12px;
+      color: #666;
+    }
+
+    .icon-shield {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    .content {
+      background: white;
+      padding: 20px;
+    }
+
+    .status-section {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      border: 1px solid #e9ecef;
+    }
+
+    .status-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .status-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .status-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #495057;
+    }
+
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 24px;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: 0.3s;
+      border-radius: 24px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: #28a745;
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(26px);
+    }
+
+    .status-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .status-indicator.active {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status-indicator.inactive {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .status-dot.active {
+      background: #28a745;
+      animation: pulse 2s infinite;
+    }
+
+    .status-dot.inactive {
+      background: #dc3545;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.5;
+      }
+    }
+
+    .mode-selector {
+      margin-bottom: 20px;
+    }
+
+    .mode-selector label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #495057;
+      margin-bottom: 8px;
+    }
+
+    .mode-options {
+      display: flex;
+      gap: 10px;
+    }
+
+    .mode-option {
+      flex: 1;
+      padding: 10px;
+      border: 2px solid #e9ecef;
+      border-radius: 6px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: white;
+    }
+
+    .mode-option:hover {
+      border-color: #667eea;
+      background: #f8f9ff;
+    }
+
+    .mode-option.selected {
+      border-color: #667eea;
+      background: #667eea;
+      color: white;
+    }
+
+    .mode-option input[type="radio"] {
+      display: none;
+    }
+
+    .mode-option-title {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 3px;
+    }
+
+    .mode-option-desc {
+      font-size: 10px;
+      opacity: 0.8;
+    }
+
+    .stats-section {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    .stats-section h3 {
+      font-size: 14px;
+      margin-bottom: 12px;
+      color: #495057;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .stat-item {
+      background: white;
+      padding: 12px;
+      border-radius: 6px;
+      text-align: center;
+      border: 1px solid #e9ecef;
+    }
+
+    .stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: #667eea;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: #6c757d;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .api-section {
+      margin-bottom: 20px;
+    }
+
+    .api-section h3 {
+      font-size: 14px;
+      margin-bottom: 12px;
+      color: #495057;
+    }
+
+    .api-info {
+      background: #fff3cd;
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      color: #856404;
+      border: 1px solid #ffeeba;
+      margin-bottom: 10px;
+    }
+
+    .api-input-group {
+      margin-bottom: 10px;
+    }
+
+    .api-input-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #495057;
+      margin-bottom: 5px;
+    }
+
+    .api-input-group input {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    .api-input-group input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-primary {
+      background: #667eea;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #5568d3;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #5a6268;
+      transform: translateY(-1px);
+    }
+
+    .btn-danger {
+      background: #dc3545;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #c82333;
+      transform: translateY(-1px);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .footer {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 15px 20px;
+      text-align: center;
+      border-top: 1px solid #e9ecef;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      font-size: 11px;
+    }
+
+    .footer-links a {
+      color: #667eea;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .footer-links a:hover {
+      text-decoration: underline;
+    }
+
+    .message {
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      margin-bottom: 15px;
+      display: none;
+    }
+
+    .message.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+      display: block;
+    }
+
+    .message.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+      display: block;
+    }
+
+    .collapsible {
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .collapsible::after {
+      content: '▼';
+      font-size: 10px;
+      transition: transform 0.3s;
+    }
+
+    .collapsible.active::after {
+      transform: rotate(-180deg);
+    }
+
+    .collapsible-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease-out;
+    }
+
+    .collapsible-content.active {
+      max-height: 500px;
+      padding-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="icon-shield">🛡️</div>
+    <h1>Fake News Checker</h1>
+    <p>for Telegram Web</p>
+  </div>
+
+  <div class="content">
+    <div id="messageContainer"></div>
+
+    <div class="status-section">
+      <div class="status-row">
+        <span class="status-label">Extension Status</span>
+        <div class="status-indicator" id="statusIndicator">
+          <span class="status-dot"></span>
+          <span>Inactive</span>
+        </div>
+      </div>
+      <div class="status-row">
+        <span class="status-label">Enable Protection</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="enableToggle" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="mode-selector">
+      <label>Checking Mode</label>
+      <div class="</label>mode-options">
+        <label class="mode-option selected">
+          <input type="radio" name="mode" value="automatic" checked>
+          <div class="mode-option-title">Auto</div>
+          <div class="mode-option-desc">Check all messages</div>
+        </label>
+        <label class="mode-option">
+          <input type="radio" name="mode" value="manual">
+          <div class="mode-option-title">Manual</div>
+          <div class="mode-option-desc">Check on demand</div>
+        </label>
+      </div>
+    </div>
+
+    <div class="stats-section">
+      <h3>📊 Statistics</h3>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <span class="stat-value" id="messagesChecked">0</span>
+          <span class="stat-label">Checked</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value" id="messagesFlagged">0</span>
+          <span class="stat-label">Flagged</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="api-section">
+      <h3 class="collapsible">⚙️ API Settings</h3>
+      <div class="collapsible-content">
+        <div class="api-info">
+          💡 Optional: Add API keys for enhanced fact-checking capabilities
+        </div>
+        <div class="api-input-group">
+          <label>Google Fact Check API Key</label>
+          <input type="password" id="googleApiKey" placeholder="Enter API key (optional)">
+        </div>
+        <div class="api-input-group">
+          <label>NewsAPI Key</label>
+          <input type="password" id="newsApiKey" placeholder="Enter API key (optional)">
+        </div>
+        <button class="btn btn-primary" id="saveApiKeys">Save API Keys</button>
+      </div>
+    </div>
+
+    <div class="button-group">
+      <button class="btn btn-secondary" id="clearCache">Clear Cache</button>
+      <button class="btn btn-primary" id="reanalyze">Re-analyze</button>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="footer-links">
+      <a href="#" id="howItWorks">How it works</a>
+      <a href="#" id="reportIssue">Report issue</a>
+      <a href="#" id="about">About</a>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
