@@ -7,10 +7,15 @@ import cssText from './index.css?inline';
 
 const isHWZ = window.location.hostname.includes('hardwarezone');
 const isTelegram = window.location.hostname.includes('telegram');
+const isWhatsApp = window.location.hostname.includes('whatsapp');
+const isReddit = window.location.hostname.includes('reddit') &&
+    (window.location.pathname.startsWith('/r/singapore') || window.location.pathname.startsWith('/r/asksingapore'));
 
-let platformName = 'WhatsApp';
+let platformName = 'Unknown';
+if (isWhatsApp) platformName = 'WhatsApp';
 if (isHWZ) platformName = 'HardwareZone';
 if (isTelegram) platformName = 'Telegram Web';
+if (isReddit) platformName = 'Reddit';
 
 console.log(`SureBoh.ai Content Script Loaded! Listening for ${platformName} messages...`);
 
@@ -157,53 +162,90 @@ const scanDOM = () => {
     }
 
     // --- WhatsApp Logic ---
-    else {
-        // Find any span that looks like long text
-        const textSpans = document.querySelectorAll('span:not([data-sureboh-analyzed])');
+    else if (isWhatsApp) {
+        // WhatsApp Web uses .selectable-text.copyable-text for message body text
+        // [data-pre-plain-text] marks message rows with sender/time metadata
+        const allMsgRows = document.querySelectorAll(
+            '[data-pre-plain-text]:not([data-sureboh-analyzed])'
+        );
+        // Limit to 3 most recent to avoid overwhelming the service worker
+        const msgRows = Array.from(allMsgRows).slice(-3);
+        console.log(`SureBoh.ai: Found ${allMsgRows.length} WhatsApp messages, analyzing ${msgRows.length} most recent.`);
 
-        textSpans.forEach(span => {
-            // Heuristic: Is it a text node that could be a message?
-            if (span.childNodes.length === 1 && span.childNodes[0].nodeType === Node.TEXT_NODE) {
-                const rawText = span.innerText;
-                // Ignore tiny UI labels, timestamps, etc.
-                if (!rawText || rawText.length < 10) return;
+        msgRows.forEach(row => {
+            const textEl = row.querySelector('.selectable-text.copyable-text');
+            const rawText = (textEl?.innerText || textEl?.textContent || '').trim();
+            if (!rawText || rawText.length < 10) return;
 
-                // Mark as processed
-                span.setAttribute('data-sureboh-analyzed', 'true');
+            row.setAttribute('data-sureboh-analyzed', 'true');
 
-                // We attach the overlay container DIRECTLY to the span's parent
-                // This avoids wrapping the entire row container
-                const targetContainer = span.parentElement;
-                if (!targetContainer) return;
+            const container = document.createElement('div');
+            container.style.position = 'relative';
+            container.style.marginTop = '4px';
+            container.style.display = 'block';
+            container.style.width = '100%';
+            container.style.clear = 'both';
+            container.style.zIndex = '50';
 
-                if (getComputedStyle(targetContainer).position === 'static') {
-                    targetContainer.style.position = 'relative';
-                }
+            row.appendChild(container);
 
-                const container = document.createElement('div');
-                // Flow normally at the bottom of the message text
-                container.style.position = 'relative';
-                container.style.marginTop = '4px';
-                container.style.display = 'block';
-                container.style.width = '100%';
-                container.style.clear = 'both';
-                container.style.zIndex = '50';
+            const shadow = container.attachShadow({ mode: 'open' });
+            const style = document.createElement('style');
+            style.textContent = cssText;
+            shadow.appendChild(style);
 
-                targetContainer.appendChild(container);
+            const reactRoot = document.createElement('div');
+            reactRoot.style.width = '100%';
+            shadow.appendChild(reactRoot);
 
-                const shadow = container.attachShadow({ mode: 'open' });
+            const root = createRoot(reactRoot);
+            root.render(getComponentForMode(rawText));
+        });
+    }
 
-                const style = document.createElement('style');
-                style.textContent = cssText;
-                shadow.appendChild(style);
+    // --- Reddit Logic (r/singapore, r/asksingapore) ---
+    else if (isReddit) {
+        // Target post titles and comment content on Reddit's new UI
+        const selectors = [
+            'shreddit-post:not([data-sureboh-injected])',
+            '.Comment:not([data-sureboh-injected]) p',
+            '[data-testid="post-container"]:not([data-sureboh-injected])',
+        ].join(', ');
 
-                const reactRoot = document.createElement('div');
-                reactRoot.style.width = '100%';
-                shadow.appendChild(reactRoot);
+        const allItems = document.querySelectorAll(selectors);
+        const items = Array.from(allItems).filter(el => {
+            const text = (el.innerText || el.textContent || '').trim();
+            return text.length > 30;
+        }).slice(-3);
 
-                const root = createRoot(reactRoot);
-                root.render(getComponentForMode(rawText));
-            }
+        console.log(`SureBoh.ai: Found ${allItems.length} Reddit items, analyzing ${items.length} most recent.`);
+
+        items.forEach(item => {
+            const rawText = (item.innerText || item.textContent || '').trim().slice(0, 2000);
+            item.setAttribute('data-sureboh-injected', 'true');
+
+            const container = document.createElement('div');
+            container.style.position = 'relative';
+            container.style.marginTop = '6px';
+            container.style.marginBottom = '6px';
+            container.style.display = 'block';
+            container.style.width = '100%';
+            container.style.clear = 'both';
+            container.style.zIndex = '50';
+
+            item.appendChild(container);
+
+            const shadow = container.attachShadow({ mode: 'open' });
+            const style = document.createElement('style');
+            style.textContent = cssText;
+            shadow.appendChild(style);
+
+            const reactRoot = document.createElement('div');
+            reactRoot.style.width = '100%';
+            shadow.appendChild(reactRoot);
+
+            const root = createRoot(reactRoot);
+            root.render(getComponentForMode(rawText));
         });
     }
 
