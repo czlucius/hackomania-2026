@@ -112,6 +112,8 @@ async function analyzeWithBackend(text, url = '') {
 
     return {
         trust_score: trustScore,
+        classification: data.classification,
+        confidence_level: data.confidence_level,
         verdict: {
             en: verdictEn,
             zh: verdictEn === "Verified" ? "已验证" : verdictEn === "Misleading" ? "误导性" : "未验证",
