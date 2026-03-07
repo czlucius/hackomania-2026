@@ -34,7 +34,7 @@ export function ExplainabilityTooltip({ children, assessment }) {
 
     return (
         <>
-            <div ref={refs.setReference} {...getReferenceProps()} className="inline-block relative">
+            <div ref={refs.setReference} {...getReferenceProps()} className="block w-full relative">
                 {children}
             </div>
             {isOpen && (
@@ -44,10 +44,10 @@ export function ExplainabilityTooltip({ children, assessment }) {
                         position: strategy,
                         top: y ?? 0,
                         left: x ?? 0,
-                        width: 'max-content',
+                        width: refs.reference.current?.offsetWidth ?? 'max-content',
                     }}
                     {...getFloatingProps()}
-                    className="z-[9999] bg-white rounded-xl shadow-2xl border border-gray-100 p-4 w-96 max-w-[90vw] pointer-events-auto"
+                    className="z-[9999] bg-white rounded-xl shadow-2xl border border-gray-100 p-4 pointer-events-auto"
                 >
                     <KampungToggle currentLang={lang} onLanguageChange={setLang} />
 
