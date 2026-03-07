@@ -7,25 +7,48 @@ export function InjectedOverlay({ text }) {
     const [loading, setLoading] = useState(true);
 
     React.useEffect(() => {
-        // Need to use chrome.runtime to communicate with background
-        if (chrome?.runtime?.sendMessage) {
-            chrome.runtime.sendMessage({ type: 'ANALYZE_MESSAGE', text }, (response) => {
-                setAssessment(response);
-                setLoading(false);
-            });
-        } else {
+        if (!chrome?.runtime?.sendMessage) {
             // Fallback for development/testing outside extension
             setAssessment({
                 trust_score: 40,
                 verdict: { en: "Unverified" },
                 summary: { en: ["Test mock data"] },
-                sources: [
-                    { name: "Singapore Police Force", icon: "👮", url: "https://www.police.gov.sg/" },
-                    { name: "ScamShield", icon: "🛡️", url: "https://www.scamshield.org.sg/" }
-                ]
+                sources: []
             });
             setLoading(false);
+            return;
         }
+
+        let retries = 0;
+        const maxRetries = 3;
+
+        const sendAnalysis = () => {
+            chrome.runtime.sendMessage({ type: 'ANALYZE_MESSAGE', text }, (response) => {
+                if (chrome.runtime.lastError) {
+                    console.warn(`SureBoh.ai: Message channel closed (attempt ${retries + 1}):`, chrome.runtime.lastError.message);
+                    if (retries < maxRetries) {
+                        retries++;
+                        setTimeout(sendAnalysis, 2000 * retries); // exponential backoff
+                    } else {
+                        console.error('SureBoh.ai: Max retries reached, giving up.');
+                        setAssessment({
+                            trust_score: null,
+                            classification: 'Unverified / uncertain',
+                            confidence_level: 'Low',
+                            verdict: { en: 'Retry failed', zh: '重试失败', ms: 'Cuba semula gagal' },
+                            summary: { en: [{ type: 'info', text: 'Analysis timed out. Click to retry.' }], zh: [], ms: [] },
+                            sources: []
+                        });
+                        setLoading(false);
+                    }
+                    return;
+                }
+                setAssessment(response);
+                setLoading(false);
+            });
+        };
+
+        sendAnalysis();
     }, [text]);
 
     if (loading) {

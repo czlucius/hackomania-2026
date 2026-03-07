@@ -48,8 +48,10 @@ const scanDOM = () => {
             '.message > .bubble-content .text:not([data-sureboh-injected])',
         ].join(', ');
 
-        const messages = document.querySelectorAll(selectors);
-        console.log(`SureBoh.ai: Found ${messages.length} Telegram messages to check.`);
+        const allMessages = document.querySelectorAll(selectors);
+        // Only analyze the most recent 3 messages to avoid overwhelming the service worker
+        const messages = Array.from(allMessages).slice(-3);
+        console.log(`SureBoh.ai: Found ${allMessages.length} Telegram messages, analyzing ${messages.length} most recent.`);
 
         messages.forEach(msg => {
             const rawText = (msg.innerText || msg.textContent || '').trim();
