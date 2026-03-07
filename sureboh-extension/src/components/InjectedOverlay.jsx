@@ -32,19 +32,21 @@ export function InjectedOverlay({ text, onVerifiedClick }) {
 
     if (score > 80) {
         return (
-            <ExplainabilityTooltip assessment={assessment}>
-                <div className="absolute top-1 right-2 cursor-pointer z-50">
-                    <CheckCircle2 className="w-4 h-4 text-green-500 fill-green-100" />
-                </div>
-            </ExplainabilityTooltip>
+            <div className="absolute inset-0 pointer-events-none flex justify-end items-end p-1">
+                <ExplainabilityTooltip assessment={assessment}>
+                    <div className="cursor-pointer pointer-events-auto bg-green-50 rounded-full shadow-sm">
+                        <CheckCircle2 className="w-4 h-4 text-green-600" />
+                    </div>
+                </ExplainabilityTooltip>
+            </div>
         );
     }
 
     if (score >= 40 && score <= 79) {
         return (
-            <div className="absolute inset-0 rounded-lg border-l-4 border-yellow-400 shadow-[rgba(253,224,71,0.3)_0px_0px_8px_0px] pointer-events-none">
+            <div className="absolute inset-0 rounded border-l-4 border-yellow-400 pointer-events-none">
                 <ExplainabilityTooltip assessment={assessment}>
-                    <div className="absolute -left-3 -top-2 cursor-pointer pointer-events-auto bg-white rounded-full p-1 shadow-md">
+                    <div className="absolute -left-3 -top-2 cursor-pointer pointer-events-auto bg-white rounded-full p-0.5 shadow-md">
                         <AlertTriangle className="w-4 h-4 text-yellow-500" />
                     </div>
                 </ExplainabilityTooltip>
@@ -54,15 +56,28 @@ export function InjectedOverlay({ text, onVerifiedClick }) {
 
     // Misleading Claim (< 40)
     return (
-        <div className={`absolute inset-0 z-50 rounded-lg flex items-center justify-center transition-all ${revealed ? 'pointer-events-none bg-transparent' : 'bg-white/30 backdrop-blur-md'}`}>
+        <div className={`absolute inset-0 z-50 rounded flex items-center justify-center transition-all duration-300 ${revealed ? 'pointer-events-none' : 'bg-red-500/20 backdrop-blur-[4px] pointer-events-auto'}`}>
+
+            {/* Small Icon Badge visible after reveal */}
+            {revealed && (
+                <div className="absolute -right-2 -top-2 pointer-events-auto">
+                    <ExplainabilityTooltip assessment={assessment}>
+                        <div className="bg-white rounded-full p-1 cursor-pointer shadow-md border border-red-200">
+                            <ShieldAlert className="w-4 h-4 text-red-600" />
+                        </div>
+                    </ExplainabilityTooltip>
+                </div>
+            )}
+
+            {/* Big Button visible before reveal */}
             {!revealed && (
                 <ExplainabilityTooltip assessment={assessment}>
                     <button
-                        onClick={() => setRevealed(true)}
-                        className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full shadow-lg text-sm font-semibold transition-transform hover:scale-105"
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setRevealed(true); }}
+                        className="flex items-center gap-1.5 bg-red-50 text-red-700 border border-red-200 px-3 py-1.5 rounded shadow-lg text-[11px] font-bold transition-transform hover:scale-105"
                     >
-                        <ShieldAlert className="w-4 h-4" />
-                        ⚠️ Misleading Claim: Click to Reveal
+                        <ShieldAlert className="w-3.5 h-3.5" />
+                        MISLEADING: Click
                     </button>
                 </ExplainabilityTooltip>
             )}
