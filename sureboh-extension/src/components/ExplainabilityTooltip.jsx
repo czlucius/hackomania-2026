@@ -272,6 +272,11 @@ export function ExplainabilityTooltip({ children, assessment }) {
 
                 {/* Voting Actions */}
                 <div className="flex items-center gap-1.5">
+                    {assessment?.community_score !== undefined && assessment?.community_score !== null && (
+                        <span className="text-xs font-semibold text-gray-400 mr-2" title="Community Score">
+                            {assessment.community_score > 0 ? '+' : ''}{assessment.community_score}
+                        </span>
+                    )}
                     <button
                         onClick={() => {
                             if (!userVote && chrome?.runtime?.sendMessage) {

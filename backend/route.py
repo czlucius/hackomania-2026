@@ -68,9 +68,29 @@ class FakeNewsAnalysisResult(BaseModel):
     recommended_action: str
     zh: Translation
     ms: Translation
+    community_score: int | None = None
 
 
 analysis_cache = {}
+
+import hashlib
+import datetime
+import clickhouse_connect
+from urllib.parse import urlparse
+
+# Connect to Clickhouse
+try:
+    ch_client = clickhouse_connect.get_client(
+        host='pokdknhsax.ap-southeast-1.aws.clickhouse.cloud',
+        user='default',
+        password='Hm1mmI~ovrB3q',
+        secure=True
+    )
+    logger.info("Connected to ClickHouse successfully.")
+except Exception as e:
+    logger.error(f"Failed to connect to ClickHouse: {e}")
+    ch_client = None
+
 
 @router.post("/check")
 async def check(user_request: InputFormat):
@@ -81,11 +101,26 @@ async def check(user_request: InputFormat):
     from_user = user_request.get("from_user", "")
     group_chat = user_request.get("group_chat", "")
 
+    # Extract score from ClickHouse if URL matches
+    community_score = 0
+    if source_url and ch_client:
+        try:
+            parsed = urlparse(source_url)
+            domain = parsed.netloc.replace("www.", "")
+            res = ch_client.query(f"SELECT score FROM links WHERE domain = '{domain}' LIMIT 1")
+            if len(res.result_rows) > 0:
+                community_score = res.result_rows[0][0]
+        except Exception as e:
+            logger.error(f"Failed to get score from ClickHouse: {e}")
+
     # Check cache first
     content_hash = hashlib.sha256(content.encode('utf-8')).hexdigest()
     if content_hash in analysis_cache:
         logger.info(f"Cache hit for content hash: {content_hash}")
-        return analysis_cache[content_hash]
+        # Attach latest score to cached result before returning
+        cached_result = analysis_cache[content_hash]
+        cached_result.community_score = community_score
+        return cached_result
 
     prompt_parts = [
         f"Please analyze the following {content_type} for fake news and misinformation:",
@@ -122,6 +157,7 @@ async def check(user_request: InputFormat):
 
         # Extract the parsed response
         result = completion.choices[0].message.parsed
+        result.community_score = community_score
         logger.info(f"Analysis completed: {completion.choices[0].message.content}")
 
         # Save to cache
