@@ -57,23 +57,40 @@ async function analyzeWithBackend(text, url = '') {
 
     const data = await res.json();
 
-    // Map backend response (FakeNewsAnalysisResult) to extension format
-    // Backend classifications: "Likely accurate", "Unverified / uncertain", "Potentially misleading"
+    // Map backend response (FakeNewsAnalysisResult) to a concise UI format
     let verdictEn = "Unverified";
     let trustScore = 50;
 
     if (data.classification === "Likely accurate") {
         verdictEn = "Verified";
-        trustScore = 90;
+        trustScore = 95;
     } else if (data.classification === "Potentially misleading") {
         verdictEn = "Misleading";
-        trustScore = 25;
+        trustScore = 15;
     }
 
+    // Create a clean, concise summary list
     const summaryEn = [];
-    if (data.explanation) summaryEn.push({ type: 'info', text: data.explanation });
-    if (data.supporting_evidence) summaryEn.push({ type: 'real', text: `Evidence: ${data.supporting_evidence}` });
-    if (data.missing_context) summaryEn.push({ type: 'info', text: `Note: ${data.missing_context}` });
+
+    // 1. Clear Verdict Explanation
+    if (data.explanation) {
+        summaryEn.push({
+            type: data.classification === "Likely accurate" ? 'real' : 'fake',
+            text: data.explanation.split('.')[0] + '.' // Just the first sentence for conciseness
+        });
+    }
+
+    // 2. Supporting Evidence or Missing Context
+    if (data.classification === "Likely accurate" && data.supporting_evidence) {
+        summaryEn.push({ type: 'real', text: `Verified via official reports: ${data.supporting_evidence.slice(0, 100)}...` });
+    } else if (data.missing_context) {
+        summaryEn.push({ type: 'info', text: `Context needed: ${data.missing_context.split('\n')[0]}` });
+    }
+
+    // 3. Recommended Action
+    if (data.recommended_action) {
+        summaryEn.push({ type: 'info', text: `Action: ${data.recommended_action.split('.')[0]}.` });
+    }
 
     return {
         trust_score: trustScore,
@@ -84,10 +101,10 @@ async function analyzeWithBackend(text, url = '') {
         },
         summary: {
             en: summaryEn,
-            zh: summaryEn.map(s => ({ ...s, text: `[ZH] ${s.text}` })), // Placeholder translations
+            zh: summaryEn.map(s => ({ ...s, text: `[ZH] ${s.text}` })), // Placeholder for actual translation logic
             ms: summaryEn.map(s => ({ ...s, text: `[MS] ${s.text}` }))
         },
-        sources: data.source_credibility ? [{ name: data.source_credibility, icon: "🔍" }] : []
+        sources: data.source_credibility ? [{ name: data.source_credibility, icon: "🔍", url: url }] : []
     };
 }
 
