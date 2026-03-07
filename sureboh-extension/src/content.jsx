@@ -26,6 +26,19 @@ const scanDOM = () => {
 
             newFound++;
             msg.setAttribute('data-sureboh-analyzed', 'true');
+        });
+
+        if (newFound > 0) {
+            console.log(`SureBoh.ai: Analyzed ${newFound} new Telegram messages.`);
+        }
+
+        // Re-iterate the original loop to actually inject the DOM... this was a bit messy, let's just do it in one loop.
+        messages.forEach(msg => {
+            if (msg.hasAttribute('data-sureboh-injected')) return;
+            msg.setAttribute('data-sureboh-injected', 'true');
+
+            const rawText = msg.innerText || msg.textContent;
+            if (!rawText || rawText.trim().length < 15) return;
 
             if (getComputedStyle(msg).position === 'static') {
                 msg.style.position = 'relative';
