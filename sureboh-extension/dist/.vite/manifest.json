@@ -5,9 +5,9 @@
     "src": "../../../../../../@crx/manifest",
     "isEntry": true
   },
-  "_content.jsx-loader-CQpCa_sK.js": {
-    "file": "assets/content.jsx-loader-CQpCa_sK.js",
-    "src": "_content.jsx-loader-CQpCa_sK.js"
+  "_content.jsx-loader-WLG76hWH.js": {
+    "file": "assets/content.jsx-loader-WLG76hWH.js",
+    "src": "_content.jsx-loader-WLG76hWH.js"
   },
   "_zap-BHQr4dbS.js": {
     "file": "assets/zap-BHQr4dbS.js",
@@ -20,7 +20,7 @@
     "isEntry": true
   },
   "src/content.jsx": {
-    "file": "assets/content.jsx-CW1hLUgG.js",
+    "file": "assets/content.jsx-BpTbjQIA.js",
     "name": "content.jsx",
     "src": "src/content.jsx",
     "isEntry": true,
@@ -29,7 +29,7 @@
     ]
   },
   "src/options.html": {
-    "file": "assets/options.html-Bu2RG0bw.js",
+    "file": "assets/options.html-DnPnAfLu.js",
     "name": "options.html",
     "src": "src/options.html",
     "isEntry": true,
@@ -37,7 +37,7 @@
       "_zap-BHQr4dbS.js"
     ],
     "css": [
-      "assets/options-D-DOh-NK.css"
+      "assets/options-YYDFOWH8.css"
     ]
   }
 }

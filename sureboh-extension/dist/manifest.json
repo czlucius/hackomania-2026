@@ -23,7 +23,7 @@
   "content_scripts": [
     {
       "js": [
-        "assets/content.jsx-loader-CQpCa_sK.js"
+        "assets/content.jsx-loader-WLG76hWH.js"
       ],
       "matches": [
         "*://web.whatsapp.com/*",
@@ -46,7 +46,7 @@
         "assets/*.jpg",
         "assets/*.svg",
         "assets/zap-BHQr4dbS.js",
-        "assets/content.jsx-CW1hLUgG.js"
+        "assets/content.jsx-BpTbjQIA.js"
       ],
       "use_dynamic_url": false
     }
