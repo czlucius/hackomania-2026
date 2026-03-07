@@ -10,6 +10,7 @@
     "*://web.whatsapp.com/*",
     "*://forums.hardwarezone.com.sg/*",
     "*://web.telegram.org/*",
+    "*://*.telegram.org/*",
     "*://www.instagram.com/*",
     "*://*.fbcdn.net/*",
     "*://*.cdninstagram.com/*",
@@ -34,6 +35,7 @@
         "*://web.whatsapp.com/*",
         "*://forums.hardwarezone.com.sg/*",
         "*://web.telegram.org/*",
+        "*://*.telegram.org/*",
         "*://www.reddit.com/*",
         "*://www.instagram.com/*",
         "*://*.instagram.com/*"
@@ -53,6 +55,7 @@
         "*://web.whatsapp.com/*",
         "*://forums.hardwarezone.com.sg/*",
         "*://web.telegram.org/*",
+        "*://*.telegram.org/*",
         "*://www.reddit.com/*",
         "*://www.instagram.com/*",
         "*://*.instagram.com/*"
