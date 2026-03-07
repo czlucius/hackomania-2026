@@ -102,7 +102,7 @@ async function analyzeWithBackend(text, url = '') {
                 try {
                     const domain = new URL(src.url).hostname;
                     faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
-                } catch (e) {}
+                } catch (e) { }
             }
             return { name: src.name, url: src.url || null, faviconUrl };
         }),
@@ -179,17 +179,19 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         return true;
 
     } else if (request.type === 'ANALYZE_IMAGE') {
-        const { src, alt } = request;
-        let response = null;
-        const textToAnalyze = (src + " " + alt).toLowerCase();
+        const { src, imageB64, mime, alt, platform } = request;
 
-        if (textToAnalyze.includes('ai-generated') || textToAnalyze.includes('midjourney') || textToAnalyze.includes('deepfake')) {
-            response = { warning: "Potential AI-generated or manipulated image detected. Verify the source." };
-        } else if (textToAnalyze.includes('scam') || textToAnalyze.includes('phishing')) {
-            response = { warning: "This image contains patterns associated with known phishing campaigns." };
-        }
+        analyzeImageWithBackend(src, imageB64, mime, alt, platform)
+            .then(result => sendResponse(result))
+            .catch(err => {
+                console.error('Image analysis failed:', err);
+                sendResponse({
+                    is_flagged: false,
+                    classification: "uncertain",
+                    explanation: "Backend check failed."
+                });
+            });
 
-        setTimeout(() => sendResponse(response), 800);
         return true;
     }
 });
