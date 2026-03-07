@@ -39,30 +39,20 @@ if (chrome?.storage?.sync) {
 const scanDOM = () => {
     // --- Telegram Web Logic ---
     if (isTelegram) {
-        const messages = document.querySelectorAll('.message, [class*="Message"], .message-content, .text-content, [class*="text-content"]');
+        // Use the most specific selector for actual message text containers only
+        // Prefer .text-content which is the innermost text node — avoids matching parent .message wrappers
+        const messages = document.querySelectorAll(
+            '.text-content:not([data-sureboh-injected]), .message-content:not([data-sureboh-injected])'
+        );
 
-        let newFound = 0;
         messages.forEach(msg => {
-            if (msg.hasAttribute('data-sureboh-analyzed')) return;
+            // Skip if a child already has our overlay to avoid double-injection on nested matches
+            if (msg.querySelector('[data-sureboh-injected]')) return;
 
-            const rawText = msg.innerText || msg.textContent;
-            if (!rawText || rawText.trim().length < 15) return;
+            const rawText = (msg.innerText || msg.textContent || '').trim();
+            if (rawText.length < 15) return;
 
-            newFound++;
-            msg.setAttribute('data-sureboh-analyzed', 'true');
-        });
-
-        if (newFound > 0) {
-            console.log(`SureBoh.ai: Analyzed ${newFound} new Telegram messages.`);
-        }
-
-        // Re-iterate the original loop to actually inject the DOM... this was a bit messy, let's just do it in one loop.
-        messages.forEach(msg => {
-            if (msg.hasAttribute('data-sureboh-injected')) return;
             msg.setAttribute('data-sureboh-injected', 'true');
-
-            const rawText = msg.innerText || msg.textContent;
-            if (!rawText || rawText.trim().length < 15) return;
 
             if (getComputedStyle(msg).position === 'static') {
                 msg.style.position = 'relative';
