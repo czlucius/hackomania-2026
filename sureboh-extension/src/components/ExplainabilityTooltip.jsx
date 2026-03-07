@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
 import { useFloating, useInteractions, useHover, safePolygon, offset, flip, shift, useClick, useDismiss, useRole } from '@floating-ui/react';
-import { ThumbsUp, ThumbsDown, CheckCircle2, AlertTriangle, Info } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, CheckCircle2, AlertTriangle, Info, ChevronDown, ChevronUp, Shield, Eye, FileSearch, AlertCircle, Zap, BookOpen } from 'lucide-react';
 import { KampungToggle } from './KampungToggle';
 import cssText from '../index.css?inline';
 
@@ -35,6 +35,47 @@ function getPortalMount() {
     return _portalMount;
 }
 
+// Collapsible detail section
+function DetailSection({ icon: Icon, label, content, iconColor }) {
+    const [open, setOpen] = useState(false);
+    if (!content) return null;
+    return (
+        <div className="border border-gray-100 rounded-lg overflow-hidden mb-1">
+            <button
+                onClick={() => setOpen(o => !o)}
+                className="w-full flex items-center justify-between px-3 py-2 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+            >
+                <span className="flex items-center gap-2 text-xs font-semibold text-gray-600">
+                    <Icon className={`w-3.5 h-3.5 ${iconColor}`} />
+                    {label}
+                </span>
+                {open
+                    ? <ChevronUp className="w-3 h-3 text-gray-400" />
+                    : <ChevronDown className="w-3 h-3 text-gray-400" />
+                }
+            </button>
+            {open && (
+                <div className="px-3 py-2.5 text-xs text-gray-700 leading-relaxed whitespace-pre-wrap bg-white">
+                    {content}
+                </div>
+            )}
+        </div>
+    );
+}
+
+// Classification colour mapping
+const classificationStyle = {
+    'Likely accurate': { bg: 'bg-green-100', text: 'text-green-800', dot: 'bg-green-500' },
+    'Unverified / uncertain': { bg: 'bg-yellow-100', text: 'text-yellow-800', dot: 'bg-yellow-500' },
+    'Potentially misleading': { bg: 'bg-red-100', text: 'text-red-800', dot: 'bg-red-500' },
+};
+
+const confidenceStyle = {
+    'High': { bg: 'bg-blue-100', text: 'text-blue-700' },
+    'Medium': { bg: 'bg-orange-100', text: 'text-orange-700' },
+    'Low': { bg: 'bg-gray-100', text: 'text-gray-600' },
+};
+
 export function ExplainabilityTooltip({ children, assessment }) {
     const [isOpen, setIsOpen] = useState(false);
     const [lang, setLang] = useState('en');
@@ -65,6 +106,11 @@ export function ExplainabilityTooltip({ children, assessment }) {
             ? 'text-yellow-500 stroke-yellow-500'
             : 'text-red-500 stroke-red-500';
 
+    const cls = assessment?.classification || 'Unverified / uncertain';
+    const clsStyle = classificationStyle[cls] || classificationStyle['Unverified / uncertain'];
+    const conf = assessment?.confidence_level || 'Low';
+    const confStyle = confidenceStyle[conf] || confidenceStyle['Low'];
+
     const floatingPanel = isOpen && (
         <div
             ref={refs.setFloating}
@@ -72,17 +118,31 @@ export function ExplainabilityTooltip({ children, assessment }) {
                 position: strategy,
                 top: y ?? 0,
                 left: x ?? 0,
-                width: refs.reference.current?.getBoundingClientRect().width ?? 320,
+                width: Math.max(refs.reference.current?.getBoundingClientRect().width ?? 320, 320),
                 pointerEvents: 'auto',
+                maxHeight: '80vh',
+                overflowY: 'auto',
             }}
             {...getFloatingProps()}
             className="bg-white rounded-xl shadow-2xl border border-gray-100 p-4"
         >
             <KampungToggle currentLang={lang} onLanguageChange={setLang} />
 
+            {/* Classification + Confidence badges */}
+            <div className="flex items-center gap-2 mb-3 flex-wrap">
+                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${clsStyle.bg} ${clsStyle.text}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${clsStyle.dot}`} />
+                    {cls}
+                </span>
+                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${confStyle.bg} ${confStyle.text}`}>
+                    {conf} confidence
+                </span>
+            </div>
+
+            {/* Trust score ring + verdict */}
             <div className="flex items-center gap-3 mb-3 pb-3 border-b border-gray-100">
                 {/* Progress Ring */}
-                <div className="relative w-12 h-12 flex items-center justify-center">
+                <div className="relative w-12 h-12 flex items-center justify-center shrink-0">
                     <svg className="w-full h-full transform -rotate-90">
                         <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-gray-100" />
                         <circle
@@ -96,13 +156,14 @@ export function ExplainabilityTooltip({ children, assessment }) {
                 </div>
 
                 <div>
-                    <p className="text-xs text-gray-400 uppercase tracking-wider font-semibold">AI Confidence</p>
-                    <h3 className={`text-lg font-bold ${scoreColor.split(' ')[0]}`}>{assessment?.verdict[lang]}</h3>
+                    <p className="text-xs text-gray-400 uppercase tracking-wider font-semibold">AI Trust Score</p>
+                    <h3 className={`text-lg font-bold ${scoreColor.split(' ')[0]}`}>{assessment?.verdict?.[lang]}</h3>
                 </div>
             </div>
 
-            <ul className="space-y-3 mb-3">
-                {assessment?.summary[lang]?.map((point, idx) => {
+            {/* Summary bullets */}
+            <ul className="space-y-2 mb-3">
+                {assessment?.summary?.[lang]?.map((point, idx) => {
                     if (typeof point === 'string') {
                         return (
                             <li key={idx} className="text-sm text-gray-700 flex items-start gap-2">
@@ -145,7 +206,48 @@ export function ExplainabilityTooltip({ children, assessment }) {
                 })}
             </ul>
 
-            <div className="flex items-center justify-between pt-2 border-t border-gray-100 mt-2">
+            {/* Collapsible detail sections */}
+            <div className="mb-3">
+                <DetailSection
+                    icon={BookOpen}
+                    label="Explanation"
+                    content={assessment?.explanation}
+                    iconColor="text-purple-500"
+                />
+                <DetailSection
+                    icon={Shield}
+                    label="Source Credibility"
+                    content={assessment?.source_credibility}
+                    iconColor="text-blue-500"
+                />
+                <DetailSection
+                    icon={Eye}
+                    label="Supporting Evidence"
+                    content={assessment?.supporting_evidence}
+                    iconColor="text-green-500"
+                />
+                <DetailSection
+                    icon={FileSearch}
+                    label="Missing Context"
+                    content={assessment?.missing_context}
+                    iconColor="text-orange-500"
+                />
+                <DetailSection
+                    icon={AlertCircle}
+                    label="Potential Harm"
+                    content={assessment?.potential_harm}
+                    iconColor="text-red-500"
+                />
+                <DetailSection
+                    icon={Zap}
+                    label="Recommended Action"
+                    content={assessment?.recommended_action}
+                    iconColor="text-yellow-500"
+                />
+            </div>
+
+            {/* Sources + Vote */}
+            <div className="flex items-center justify-between pt-2 border-t border-gray-100">
                 <div className="flex items-center gap-2">
                     <span className="text-xs text-gray-400 font-medium">Sources:</span>
                     {assessment?.sources?.length > 0 ? (
