@@ -10,12 +10,19 @@ console.log(`SureBoh.ai Content Script Loaded! Listening for ${isHWZ ? 'Hardware
 const scanDOM = () => {
     // --- HardwareZone Logic ---
     if (isHWZ) {
+        console.log("SureBoh.ai: Scanning HWZ DOM...");
         // HWZ uses class 'post-content' or similar for forum posts
         const posts = document.querySelectorAll('.post-content:not([data-sureboh-analyzed]), .bbWrapper:not([data-sureboh-analyzed])');
+        console.log(`SureBoh.ai: Found ${posts.length} unanalyzed HWZ posts.`);
         posts.forEach(post => {
             const rawText = post.innerText;
-            if (!rawText || rawText.length < 20) return;
+            if (!rawText || rawText.length < 20) {
+                console.log("SureBoh.ai: Skipping short post:", rawText);
+                post.setAttribute('data-sureboh-analyzed', 'skipped');
+                return;
+            }
 
+            console.log("SureBoh.ai: Analyzing HWZ Post:", rawText.slice(0, 30));
             post.setAttribute('data-sureboh-analyzed', 'true');
 
             if (getComputedStyle(post).position === 'static') {
