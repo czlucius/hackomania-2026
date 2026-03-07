@@ -278,10 +278,57 @@ const scanDOM = () => {
         });
     }
 
+    // --- Instagram Logic (captions & post text) ---
+    else if (isInstagram) {
+        // Instagram captions: 'article h1' is the most stable selector across feed, reels & explore.
+        // '_a9zs' is the legacy wrapper class kept as a fallback.
+        // We also catch 'article span[class]' blocks with meaningful text as a last resort.
+        const captionSelectors = [
+            'article h1:not([data-sureanot-injected])',
+            '._a9zs:not([data-sureanot-injected])',
+        ].join(', ');
+
+        const captions = document.querySelectorAll(captionSelectors);
+        console.log(`SureAnot.ai: Found ${captions.length} Instagram caption elements.`);
+
+        captions.forEach(caption => {
+            const rawText = (caption.innerText || caption.textContent || '').trim();
+            if (rawText.length < 20) return;
+
+            caption.setAttribute('data-sureanot-injected', 'true');
+
+            if (getComputedStyle(caption).position === 'static') {
+                caption.style.position = 'relative';
+            }
+
+            const container = document.createElement('div');
+            container.style.position = 'relative';
+            container.style.marginTop = '6px';
+            container.style.display = 'block';
+            container.style.width = '100%';
+            container.style.clear = 'both';
+            container.style.zIndex = '50';
+
+            caption.appendChild(container);
+
+            const shadow = container.attachShadow({ mode: 'open' });
+            const style = document.createElement('style');
+            style.textContent = cssText;
+            shadow.appendChild(style);
+
+            const reactRoot = document.createElement('div');
+            reactRoot.style.width = '100%';
+            shadow.appendChild(reactRoot);
+
+            const root = createRoot(reactRoot);
+            root.render(getComponentForMode(rawText));
+        });
+    }
+
     // --- Image Scanning Logic (Cross-platform + Instagram) ---
-    // On Instagram, target post images specifically; elsewhere scan everything.
+    // On Instagram, target post/reel images inside article; elsewhere scan everything.
     const imgSelector = isInstagram
-        ? 'article img:not([data-sureanot-img-analyzed]), ._aagt img:not([data-sureanot-img-analyzed])'
+        ? 'article img:not([data-sureanot-img-analyzed]), section img:not([data-sureanot-img-analyzed])'
         : 'img:not([data-sureanot-img-analyzed])';
     const images = document.querySelectorAll(imgSelector);
     images.forEach(img => {

@@ -198,6 +198,31 @@ async function analyzeImageWithBackend(imageUrl, imageB64, mime, alt, platform) 
         return imageCache.get(cacheKey);
     }
 
+    // Instagram CDN URLs (fbcdn.net / cdninstagram.com) are signed and can't be
+    // fetched directly by OpenAI. Fetch the image in the service worker and
+    // convert to base64 before forwarding to the backend.
+    if (!imageB64 && imageUrl && (
+        imageUrl.includes('fbcdn.net') ||
+        imageUrl.includes('cdninstagram.com') ||
+        platform === 'Instagram'
+    )) {
+        try {
+            const resp = await fetch(imageUrl);
+            if (resp.ok) {
+                const contentType = resp.headers.get('content-type') || 'image/jpeg';
+                const buffer = await resp.arrayBuffer();
+                const bytes = new Uint8Array(buffer);
+                let binary = '';
+                for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
+                imageB64 = btoa(binary);
+                mime = contentType.split(';')[0] || 'image/jpeg';
+                imageUrl = null; // don't send the URL to the backend anymore
+            }
+        } catch (e) {
+            console.warn('SureAnot.ai: Could not fetch Instagram image for base64 encoding', e);
+        }
+    }
+
     const body = {
         context: alt || null,
         platform: platform || null,

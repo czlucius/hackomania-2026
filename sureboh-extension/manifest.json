@@ -10,6 +10,9 @@
     "*://web.whatsapp.com/*",
     "*://forums.hardwarezone.com.sg/*",
     "*://web.telegram.org/*",
+    "*://www.instagram.com/*",
+    "*://*.fbcdn.net/*",
+    "*://*.cdninstagram.com/*",
     "http://localhost:8000/*"
   ],
   "background": {
@@ -29,7 +32,8 @@
         "*://web.whatsapp.com/*",
         "*://forums.hardwarezone.com.sg/*",
         "*://web.telegram.org/*",
-        "*://www.reddit.com/*"
+        "*://www.reddit.com/*",
+        "*://www.instagram.com/*"
       ]
     }
   ],
@@ -46,7 +50,8 @@
         "*://web.whatsapp.com/*",
         "*://forums.hardwarezone.com.sg/*",
         "*://web.telegram.org/*",
-        "*://www.reddit.com/*"
+        "*://www.reddit.com/*",
+        "*://www.instagram.com/*"
       ]
     }
   ]
