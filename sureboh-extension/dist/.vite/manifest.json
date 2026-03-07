@@ -1,0 +1,43 @@
+{
+  "../../../../../../@crx/manifest": {
+    "file": "assets/crx-manifest.js-DlwlXBPb.js",
+    "name": "crx-manifest.js",
+    "src": "../../../../../../@crx/manifest",
+    "isEntry": true
+  },
+  "_content.jsx-loader-pqm8VIEn.js": {
+    "file": "assets/content.jsx-loader-pqm8VIEn.js",
+    "src": "_content.jsx-loader-pqm8VIEn.js"
+  },
+  "_zap-BHQr4dbS.js": {
+    "file": "assets/zap-BHQr4dbS.js",
+    "name": "zap"
+  },
+  "src/background.js": {
+    "file": "assets/background.js-CcXtSoK5.js",
+    "name": "background.js",
+    "src": "src/background.js",
+    "isEntry": true
+  },
+  "src/content.jsx": {
+    "file": "assets/content.jsx-CahHjYY5.js",
+    "name": "content.jsx",
+    "src": "src/content.jsx",
+    "isEntry": true,
+    "imports": [
+      "_zap-BHQr4dbS.js"
+    ]
+  },
+  "src/options.html": {
+    "file": "assets/options.html-iN4f58Tj.js",
+    "name": "options.html",
+    "src": "src/options.html",
+    "isEntry": true,
+    "imports": [
+      "_zap-BHQr4dbS.js"
+    ],
+    "css": [
+      "assets/options-Dee2B-_r.css"
+    ]
+  }
+}
