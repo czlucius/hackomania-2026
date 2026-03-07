@@ -7,12 +7,17 @@ import cssText from './index.css?inline';
 
 const isHWZ = window.location.hostname.includes('hardwarezone');
 const isTelegram = window.location.hostname.includes('telegram');
+const isWhatsApp = window.location.hostname.includes('whatsapp');
+const isReddit = window.location.hostname.includes('reddit') &&
+    (window.location.pathname.startsWith('/r/singapore') || window.location.pathname.startsWith('/r/asksingapore'));
 
-let platformName = 'WhatsApp';
+let platformName = 'Unknown';
+if (isWhatsApp) platformName = 'WhatsApp';
 if (isHWZ) platformName = 'HardwareZone';
 if (isTelegram) platformName = 'Telegram Web';
+if (isReddit) platformName = 'Reddit';
 
-console.log(`SureBoh.ai Content Script Loaded! Listening for ${platformName} messages...`);
+console.log(`SureAnot.ai Content Script Loaded! Listening for ${platformName} messages...`);
 
 let currentAnalysisMode = 'proactive';
 
@@ -42,23 +47,23 @@ const scanDOM = () => {
         // Telegram Web (K version): messages are in .message > .text-content or .message-content
         // Telegram Web (Z version): messages are in .message-text or .text
         const selectors = [
-            '.text-content:not([data-sureboh-injected])',
-            '.message-text:not([data-sureboh-injected])',
-            '.translatable-message:not([data-sureboh-injected])',
-            '.message > .bubble-content .text:not([data-sureboh-injected])',
+            '.text-content:not([data-sureanot-injected])',
+            '.message-text:not([data-sureanot-injected])',
+            '.translatable-message:not([data-sureanot-injected])',
+            '.message > .bubble-content .text:not([data-sureanot-injected])',
         ].join(', ');
 
         const allMessages = document.querySelectorAll(selectors);
         // Only analyze the most recent 3 messages to avoid overwhelming the service worker
         const messages = Array.from(allMessages).slice(-3);
-        console.log(`SureBoh.ai: Found ${allMessages.length} Telegram messages, analyzing ${messages.length} most recent.`);
+        console.log(`SureAnot.ai: Found ${allMessages.length} Telegram messages, analyzing ${messages.length} most recent.`);
 
         messages.forEach(msg => {
             const rawText = (msg.innerText || msg.textContent || '').trim();
-            console.log(`SureBoh.ai: Telegram msg text (${rawText.length} chars): "${rawText.slice(0, 60)}"`);
+            console.log(`SureAnot.ai: Telegram msg text (${rawText.length} chars): "${rawText.slice(0, 60)}"`);
             if (rawText.length < 15) return;
 
-            msg.setAttribute('data-sureboh-injected', 'true');
+            msg.setAttribute('data-sureanot-injected', 'true');
 
             if (getComputedStyle(msg).position === 'static') {
                 msg.style.position = 'relative';
@@ -90,16 +95,16 @@ const scanDOM = () => {
 
     // --- HardwareZone Logic ---
     else if (isHWZ) {
-        console.log("SureBoh.ai: Scanning HWZ DOM...");
+        console.log("SureAnot.ai: Scanning HWZ DOM...");
         // HWZ uses class 'post-content' or similar for forum posts
-        const posts = document.querySelectorAll('.post-content:not([data-sureboh-analyzed]), .bbWrapper:not([data-sureboh-analyzed])');
-        console.log(`SureBoh.ai: Found ${posts.length} unanalyzed HWZ posts.`);
+        const posts = document.querySelectorAll('.post-content:not([data-sureanot-analyzed]), .bbWrapper:not([data-sureanot-analyzed])');
+        console.log(`SureAnot.ai: Found ${posts.length} unanalyzed HWZ posts.`);
 
         // Extract Thread Title for context
         const threadTitle = document.querySelector('h1.p-title-value')?.innerText || document.title || '';
 
         // Determine if there are already analyzed posts on this page to correctly sequence
-        const alreadyAnalyzedCount = document.querySelectorAll('[data-sureboh-analyzed="true"]').length;
+        const alreadyAnalyzedCount = document.querySelectorAll('[data-sureanot-analyzed="true"]').length;
 
         posts.forEach((post, index) => {
             // Extract text but also include full URLs if they exist
@@ -108,8 +113,8 @@ const scanDOM = () => {
 
             const rawText = (post.innerText || post.textContent || '').trim();
             if (rawText.length < 20) {
-                console.log("SureBoh.ai: Skipping short post:", rawText.slice(0, 20));
-                post.setAttribute('data-sureboh-analyzed', 'skipped');
+                console.log("SureAnot.ai: Skipping short post:", rawText.slice(0, 20));
+                post.setAttribute('data-sureanot-analyzed', 'skipped');
                 return;
             }
 
@@ -117,7 +122,7 @@ const scanDOM = () => {
             const analysisPayload = `Thread Title: ${threadTitle}\n\nPost Content: ${rawText}${linkContext}`;
 
             const currentPostIndex = alreadyAnalyzedCount + index;
-            post.setAttribute('data-sureboh-analyzed', 'true');
+            post.setAttribute('data-sureanot-analyzed', 'true');
 
             if (getComputedStyle(post).position === 'static') {
                 post.style.position = 'relative';
@@ -147,70 +152,114 @@ const scanDOM = () => {
 
             // Logic: Auto-analyze the first post (index 0), rest are manual
             if (currentPostIndex === 0) {
-                console.log("SureBoh.ai: Auto-analyzing first HWZ post.");
+                console.log("SureAnot.ai: Auto-analyzing first HWZ post.");
                 root.render(<InjectedOverlay text={analysisPayload} />);
             } else {
-                console.log(`SureBoh.ai: Adding manual button for HWZ post #${currentPostIndex + 1}.`);
+                console.log(`SureAnot.ai: Adding manual button for HWZ post #${currentPostIndex + 1}.`);
                 root.render(<AnalyzeManualButton text={analysisPayload} />);
             }
         });
     }
 
     // --- WhatsApp Logic ---
-    else {
-        // Find any span that looks like long text
-        const textSpans = document.querySelectorAll('span:not([data-sureboh-analyzed])');
+    else if (isWhatsApp) {
+        // confirmed via DOM inspection: .message-in and .message-out return actual message bubbles
+        // .copyable-text holds the text content inside each bubble
+        const allMsgBubbles = document.querySelectorAll(
+            '.message-in:not([data-sureanot-analyzed]), .message-out:not([data-sureanot-analyzed])'
+        );
+        // Limit to 3 most recent to avoid overwhelming the service worker
+        const msgBubbles = Array.from(allMsgBubbles).slice(-3);
+        console.log(`SureAnot.ai: Found ${allMsgBubbles.length} WhatsApp messages, analyzing ${msgBubbles.length} most recent.`);
 
-        textSpans.forEach(span => {
-            // Heuristic: Is it a text node that could be a message?
-            if (span.childNodes.length === 1 && span.childNodes[0].nodeType === Node.TEXT_NODE) {
-                const rawText = span.innerText;
-                // Ignore tiny UI labels, timestamps, etc.
-                if (!rawText || rawText.length < 10) return;
+        msgBubbles.forEach(bubble => {
+            // Try multiple text selectors for different WhatsApp Web versions
+            const textEl = bubble.querySelector('.copyable-text') ||
+                bubble.querySelector('[data-pre-plain-text]') ||
+                bubble.querySelector('span[dir="ltr"]');
+            const rawText = (textEl?.innerText || textEl?.textContent || '').trim();
+            console.log(`SureAnot.ai: WhatsApp bubble text (${rawText.length}): "${rawText.slice(0, 60)}"`);
+            if (!rawText || rawText.length < 10) return;
 
-                // Mark as processed
-                span.setAttribute('data-sureboh-analyzed', 'true');
+            bubble.setAttribute('data-sureanot-analyzed', 'true');
 
-                // We attach the overlay container DIRECTLY to the span's parent
-                // This avoids wrapping the entire row container
-                const targetContainer = span.parentElement;
-                if (!targetContainer) return;
+            // Inject after the bubble's content
+            const bubbleContent = bubble.querySelector('.copyable-area') || bubble;
 
-                if (getComputedStyle(targetContainer).position === 'static') {
-                    targetContainer.style.position = 'relative';
-                }
+            const container = document.createElement('div');
+            container.style.position = 'relative';
+            container.style.marginTop = '4px';
+            container.style.display = 'block';
+            container.style.width = '100%';
+            container.style.clear = 'both';
+            container.style.zIndex = '50';
 
-                const container = document.createElement('div');
-                // Flow normally at the bottom of the message text
-                container.style.position = 'relative';
-                container.style.marginTop = '4px';
-                container.style.display = 'block';
-                container.style.width = '100%';
-                container.style.clear = 'both';
-                container.style.zIndex = '50';
+            bubbleContent.appendChild(container);
 
-                targetContainer.appendChild(container);
+            const shadow = container.attachShadow({ mode: 'open' });
+            const style = document.createElement('style');
+            style.textContent = cssText;
+            shadow.appendChild(style);
 
-                const shadow = container.attachShadow({ mode: 'open' });
+            const reactRoot = document.createElement('div');
+            reactRoot.style.width = '100%';
+            shadow.appendChild(reactRoot);
 
-                const style = document.createElement('style');
-                style.textContent = cssText;
-                shadow.appendChild(style);
+            const root = createRoot(reactRoot);
+            root.render(getComponentForMode(rawText));
+        });
+    }
 
-                const reactRoot = document.createElement('div');
-                reactRoot.style.width = '100%';
-                shadow.appendChild(reactRoot);
+    // --- Reddit Logic (r/singapore, r/asksingapore) ---
+    else if (isReddit) {
+        // Target post titles and comment content on Reddit's new UI
+        const selectors = [
+            'shreddit-post:not([data-sureanot-injected])',
+            '.Comment:not([data-sureanot-injected]) p',
+            '[data-testid="post-container"]:not([data-sureanot-injected])',
+        ].join(', ');
 
-                const root = createRoot(reactRoot);
-                root.render(getComponentForMode(rawText));
-            }
+        const allItems = document.querySelectorAll(selectors);
+        const items = Array.from(allItems).filter(el => {
+            const text = (el.innerText || el.textContent || '').trim();
+            return text.length > 30;
+        }).slice(-3);
+
+        console.log(`SureAnot.ai: Found ${allItems.length} Reddit items, analyzing ${items.length} most recent.`);
+
+        items.forEach(item => {
+            const rawText = (item.innerText || item.textContent || '').trim().slice(0, 2000);
+            item.setAttribute('data-sureanot-injected', 'true');
+
+            const container = document.createElement('div');
+            container.style.position = 'relative';
+            container.style.marginTop = '6px';
+            container.style.marginBottom = '6px';
+            container.style.display = 'block';
+            container.style.width = '100%';
+            container.style.clear = 'both';
+            container.style.zIndex = '50';
+
+            item.appendChild(container);
+
+            const shadow = container.attachShadow({ mode: 'open' });
+            const style = document.createElement('style');
+            style.textContent = cssText;
+            shadow.appendChild(style);
+
+            const reactRoot = document.createElement('div');
+            reactRoot.style.width = '100%';
+            shadow.appendChild(reactRoot);
+
+            const root = createRoot(reactRoot);
+            root.render(getComponentForMode(rawText));
         });
     }
 
     // --- Image Scanning Logic (Cross-platform) ---
-    const images = document.querySelectorAll('img:not([data-sureboh-img-analyzed])');
+    const images = document.querySelectorAll('img:not([data-sureanot-img-analyzed])');
     images.forEach(img => {
-        img.setAttribute('data-sureboh-img-analyzed', 'true');
+        img.setAttribute('data-sureanot-img-analyzed', 'true');
         const src = img.src || '';
         const alt = img.alt || '';
 

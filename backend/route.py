@@ -1,8 +1,5 @@
-<<<<<<< HEAD
 import json
-import logging
 from datetime import datetime
-=======
 import os
 import sys
 import logging
@@ -10,19 +7,15 @@ import hashlib
 import datetime
 import clickhouse_connect
 from urllib.parse import urlparse
->>>>>>> e72711bd13ae06df887a87b15ddbc6a21f3b3cda
 from typing import TypedDict
 from fastapi import APIRouter
 from openai import OpenAI
 from pydantic import BaseModel
-<<<<<<< HEAD
 from exa_py import Exa
-=======
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv()
->>>>>>> e72711bd13ae06df887a87b15ddbc6a21f3b3cda
 
 openai_client = OpenAI(
     api_key=os.getenv("OPENAI_API_KEY")
@@ -30,7 +23,7 @@ openai_client = OpenAI(
 exa_client = Exa(api_key="2a0c3fae-a2b1-4bb1-a5b9-d6c97cb0770b")
 
 SYSTEM_INSTRUCTIONS = """
-You are SureBoh.ai, a specialized fact-checking assistant for Singapore. Your mission is to help people make informed decisions in a fragmented information landscape. Communities need tools that help them UNDERSTAND information better, not just delete it.
+You are SureAnot.ai, a specialized fact-checking assistant for Singapore. Your mission is to help people make informed decisions in a fragmented information landscape. Communities need tools that help them UNDERSTAND information better, not just delete it.
 
 <<<<<<< HEAD
 
@@ -38,7 +31,7 @@ Guidelines for Classes:
 1. "Likely accurate": Use this for claims that are widely documented facts or reputable news sources. Be decisive.
 2. "Potentially misleading": Use this if the claim is demonstrably false, a known scam, or a manipulated narrative.
 3. "Unverified / uncertain": Use only if the claim is truly ambiguous, a personal anecdote without evidence, or outside your knowledge base.
-=======
+
 Core Criteria for Analysis:
 
 1. Assess Credibility:
@@ -64,14 +57,14 @@ Core Criteria for Analysis:
 >>>>>>> e72711bd13ae06df887a87b15ddbc6a21f3b3cda
 
 Multi-language Requirement:
-- You will receive a `preferred_lang` (en, zh, ms).
+- You will receive a `preferred_lang` (en, zh, ms, ta).
 - ALWAYS provide the English fields (`explanation`, `verdict`, etc.).
-- ONLY provide the translation for `zh` or `ms` if it matches the `preferred_lang`. If `preferred_lang` is 'en', DO NOT provide `zh` or `ms`.
+- ONLY provide the translation for `zh`, `ms`, or `ta` if it matches the `preferred_lang`. If `preferred_lang` is `en`, set `zh`, `ms`, and `ta` to null.
+- For Tamil (`ta`), write in standard Tamil used in Singapore (Tamil Nadu Tamil is acceptable, avoid overly archaic vocabulary).
 - This is for performance optimization. Keep explanations concise (max 2 sentences).
 - If a translation is requested later via the `/translate` endpoint, you will handle it there.
 
 Analysis Logic:
-<<<<<<< HEAD
 - For Singapore news (e.g., cigarette seizures at Changi, arrests, health advisories), if the location/numbers/dates match known reports, mark as "Likely accurate".
 - For global news, mark accurate info as "Likely accurate"
 - Do not require excessive specific details to be marked as "Likely accurate"
@@ -84,10 +77,6 @@ Tool Usage:
 - Compare the message content against search results to assess credibility.
 - Consider the source, date, and relevance of articles when making your determination.
 - Specify the date of the event in relation to the message content and the message may not be a recent news
-=======
-- For Singapore news, match against known reports (ST, CNA, Mothership).
-- For domain-level tracking, we use the full hostname (e.g., forums.hardwarezone.com.sg).
->>>>>>> e72711bd13ae06df887a87b15ddbc6a21f3b3cda
 """
 
 logging.basicConfig(level=logging.INFO)
@@ -143,6 +132,7 @@ class FakeNewsAnalysisResult(BaseModel):
     recommended_action: str
     zh: Translation | None = None
     ms: Translation | None = None
+    ta: Translation | None = None
     community_score: int | None = None
 
 
@@ -356,7 +346,7 @@ async def check(user_request: InputFormat):
 
     except Exception as e:
         logger.error(f"Error during analysis: {str(e)}")
-        raise
+        raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
 
 
 
@@ -366,13 +356,18 @@ class TranslationRequest(BaseModel):
 
 @router.post("/translate")
 async def translate(request: TranslationRequest):
-    target_name = "Chinese (Singapore context)" if request.target_lang == 'zh' else "Malay (Singapore context)"
+    lang_map = {
+        'zh': 'Chinese (Singapore context)',
+        'ms': 'Malay (Singapore context)',
+        'ta': 'Tamil (Singapore Tamil context, standard written form)'
+    }
+    target_name = lang_map.get(request.target_lang, 'English')
     
     prompt = f"Translate the following fact-checking explanation into {target_name}. Ensure it sounds natural for a Singaporean audience:\n\n{request.text}"
     
     try:
         completion = openai_client.beta.chat.completions.parse(
-            model="gpt-4o-mini",
+            model="gpt-5-mini",
             messages=[
                 {"role": "system", "content": "You are a professional translator specializing in Singaporean local context and Singlish-to-Standard transitions."},
                 {"role": "user", "content": prompt},

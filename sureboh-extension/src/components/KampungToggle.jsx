@@ -4,7 +4,8 @@ export function KampungToggle({ currentLang, onLanguageChange }) {
     const languages = [
         { code: 'en', label: 'EN' },
         { code: 'zh', label: '中文' },
-        { code: 'ms', label: 'Melayu' }
+        { code: 'ms', label: 'Melayu' },
+        { code: 'ta', label: 'தமிழ்' }
     ];
 
     return (

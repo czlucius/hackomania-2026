@@ -119,10 +119,10 @@ export function ExplainabilityTooltip({ children, assessment: initialAssessment 
                     // Update verdict
                     const verdictColorStr = scoreColor.split(' ')[0]; // keep it consistent
                     const rawVerdict = assessment.classification === "Likely accurate"
-                        ? (newLang === 'zh' ? "基本准确" : "Mungkin tepat")
+                        ? (newLang === 'zh' ? "基本准确" : newLang === 'ta' ? "சரியானது" : "Mungkin tepat")
                         : (assessment.classification === "Potentially misleading"
-                            ? (newLang === 'zh' ? "可能含有误导性信息" : "Mungkin mengelirukan")
-                            : (newLang === 'zh' ? "未经证实 / 不确定" : "Tidak disahkan / tidak pasti"));
+                            ? (newLang === 'zh' ? "可能含有误导性信息" : newLang === 'ta' ? "தவறான தகவல்" : "Mungkin mengelirukan")
+                            : (newLang === 'zh' ? "未经证实 / 不确定" : newLang === 'ta' ? "சரிபார்க்கப்படவில்லை" : "Tidak disahkan / tidak pasti"));
 
                     updatedAssessment.verdict = {
                         ...updatedAssessment.verdict,

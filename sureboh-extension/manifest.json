@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "SureBoh.ai",
+  "name": "SureAnot.ai",
   "version": "1.0.0",
   "description": "Evaluates WhatsApp messages for credibility with contextual nutrition labels.",
   "permissions": [
@@ -28,7 +28,8 @@
       "matches": [
         "*://web.whatsapp.com/*",
         "*://forums.hardwarezone.com.sg/*",
-        "*://web.telegram.org/*"
+        "*://web.telegram.org/*",
+        "*://www.reddit.com/*"
       ]
     }
   ],
@@ -44,7 +45,8 @@
       "matches": [
         "*://web.whatsapp.com/*",
         "*://forums.hardwarezone.com.sg/*",
-        "*://web.telegram.org/*"
+        "*://web.telegram.org/*",
+        "*://www.reddit.com/*"
       ]
     }
   ]
