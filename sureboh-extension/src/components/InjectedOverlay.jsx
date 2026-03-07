@@ -46,14 +46,14 @@ export function InjectedOverlay({ text }) {
     return (
         <div className="w-full pointer-events-auto mt-1">
             <ExplainabilityTooltip assessment={assessment}>
-                <div className={`cursor-pointer w-full flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border shadow-sm transition-all hover:shadow-md hover:scale-[1.01] ${scoreColor}`}>
-                    <div className="flex items-center gap-1.5">
+                <div className={`cursor-pointer w-full min-w-max flex flex-row items-center justify-between gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border shadow-sm transition-all hover:shadow-md hover:scale-[1.01] ${scoreColor}`}>
+                    <div className="flex items-center gap-1.5 whitespace-nowrap">
                         <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-                        <span className="text-[11px] sm:text-[13px] font-bold tracking-tight whitespace-nowrap">{assessment?.verdict?.en || 'Analyzing...'}</span>
+                        <span className="text-[11px] sm:text-[13px] font-bold tracking-tight">{assessment?.verdict?.en || 'Analyzing...'}</span>
                     </div>
                     <div className="flex items-center gap-1 sm:gap-2 text-[10px] sm:text-xs opacity-90 font-medium whitespace-nowrap">
-                        <span className="hidden sm:inline">Hover for Analysis</span>
-                        <span className="hidden sm:inline">•</span>
+                        <span className="inline">Hover for Analysis</span>
+                        <span className="inline">•</span>
                         <span>{score}% Trust</span>
                     </div>
                 </div>
