@@ -10,7 +10,10 @@ const isHWZ = window.location.hostname.includes('hardwarezone');
 const isTelegram = window.location.hostname.includes('telegram');
 const isWhatsApp = window.location.hostname.includes('whatsapp');
 const isInstagram = window.location.hostname.includes('instagram');
-const isReddit = window.location.hostname.includes('reddit') &&
+// Keep a static hostname flag; the subreddit path is re-checked on every scanDOM
+// call so SPA navigation (reddit.com -> r/singapore) is handled correctly.
+const isRedditHostname = window.location.hostname.includes('reddit');
+const isReddit = isRedditHostname &&
     window.location.pathname.toLowerCase().match(/^\/r\/(singapore|asksingapore|singaporeraw)\b/);
 
 let platformName = 'Unknown';
@@ -232,49 +235,67 @@ const scanDOM = () => {
         });
     }
 
-    // --- Reddit Logic (r/singapore, r/asksingapore) ---
-    else if (isReddit) {
-        // Target post titles and comment content on Reddit's new UI
-        const selectors = [
-            'shreddit-post:not([data-sureanot-injected])',
-            '.Comment:not([data-sureanot-injected]) p',
-            '[data-testid="post-container"]:not([data-sureanot-injected])',
-        ].join(', ');
+    // --- Reddit Logic (r/singapore, r/asksingapore, r/singaporeraw) ---
+    // Re-evaluate the subreddit path every scan so SPA navigation is handled.
+    else if (isRedditHostname && window.location.pathname.toLowerCase().match(/^\/r\/(singapore|asksingapore|singaporeraw)\b/)) {
+        // ── Posts (auto-analyze, same as other platforms) ──────────────────
+        const posts = Array.from(
+            document.querySelectorAll('shreddit-post:not([data-sureanot-injected])')
+        ).filter(el => (el.getAttribute('post-title') || '').length > 5).slice(0, 3);
 
-        const allItems = document.querySelectorAll(selectors);
-        const items = Array.from(allItems).filter(el => {
-            const text = (el.innerText || el.textContent || '').trim();
-            return text.length > 30;
-        }).slice(-3);
-
-        console.log(`SureAnot.ai: Found ${allItems.length} Reddit items, analyzing ${items.length} most recent.`);
-
-        items.forEach(item => {
-            const rawText = (item.innerText || item.textContent || '').trim().slice(0, 2000);
+        posts.forEach(item => {
+            const title = item.getAttribute('post-title') || '';
+            const body = item.querySelector('[slot="text-body"]')?.innerText?.trim() || '';
+            const rawText = (body ? `${title}\n\n${body}` : title).slice(0, 2000);
+            if (!rawText) return;
             item.setAttribute('data-sureanot-injected', 'true');
 
             const container = document.createElement('div');
-            container.style.position = 'relative';
-            container.style.marginTop = '6px';
-            container.style.marginBottom = '6px';
-            container.style.display = 'block';
-            container.style.width = '100%';
-            container.style.clear = 'both';
-            container.style.zIndex = '50';
-
-            item.appendChild(container);
+            container.style.cssText = 'position:relative;margin-top:6px;margin-bottom:6px;display:block;width:100%;clear:both;z-index:50;';
+            item.insertAdjacentElement('afterend', container);
 
             const shadow = container.attachShadow({ mode: 'open' });
             const style = document.createElement('style');
             style.textContent = cssText;
             shadow.appendChild(style);
-
             const reactRoot = document.createElement('div');
             reactRoot.style.width = '100%';
             shadow.appendChild(reactRoot);
+            createRoot(reactRoot).render(getComponentForMode(rawText));
+        });
 
-            const root = createRoot(reactRoot);
-            root.render(getComponentForMode(rawText));
+        // ── Comments (click-to-analyze only, injected into the action bar) ─────
+        // shreddit-comment's shadow DOM action row exposes a `comment-insight` slot.
+        // By giving our host element that slot name and appending it to the
+        // shreddit-comment light DOM, the browser distributes it straight into the
+        // actions bar — no content displacement, no nesting issues.
+        const allComments = Array.from(
+            document.querySelectorAll('shreddit-comment:not([data-sureanot-injected])')
+        );
+
+        allComments.forEach(item => {
+            // Use :scope > so we only read THIS comment's own text, not nested replies.
+            const ownContentEl =
+                item.querySelector(':scope > [slot="comment-content"]') ||
+                item.querySelector(':scope > [id^="comment-body"]');
+            const rawText = (ownContentEl?.innerText || ownContentEl?.textContent || '').trim().slice(0, 2000);
+            if (!rawText) return;
+            item.setAttribute('data-sureanot-injected', 'true');
+
+            // Host element slotted into the action bar via the shadow DOM slot mechanism.
+            const host = document.createElement('div');
+            host.setAttribute('slot', 'comment-insight');
+            host.style.cssText = 'display:inline-flex;align-items:center;';
+            item.appendChild(host);
+
+            const shadow = host.attachShadow({ mode: 'open' });
+            const style = document.createElement('style');
+            style.textContent = cssText;
+            shadow.appendChild(style);
+            const reactRoot = document.createElement('div');
+            shadow.appendChild(reactRoot);
+            // Always manual for comments — never auto-fire the API.
+            createRoot(reactRoot).render(<AnalyzeManualButton text={rawText} compact />);
         });
     }
 
@@ -326,6 +347,9 @@ const scanDOM = () => {
     }
 
     // --- Image Scanning Logic (Cross-platform + Instagram) ---
+    // Skip image scanning on Reddit — profile picture avatars trigger false positives.
+    if (isRedditHostname) return;
+
     // On Instagram, target post/reel images inside article; elsewhere scan everything.
     const imgSelector = isInstagram
         ? 'article img:not([data-sureanot-img-analyzed]), section img:not([data-sureanot-img-analyzed])'
