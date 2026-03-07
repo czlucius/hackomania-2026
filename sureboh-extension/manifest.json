@@ -3,15 +3,25 @@
   "name": "SureBoh.ai",
   "version": "1.0.0",
   "description": "Evaluates WhatsApp messages for credibility with contextual nutrition labels.",
-  "permissions": ["storage"],
-  "host_permissions": ["*://web.whatsapp.com/*"],
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "*://web.whatsapp.com/*",
+    "*://forums.hardwarezone.com.sg/*"
+  ],
   "background": {
     "service_worker": "src/background.js"
   },
   "content_scripts": [
     {
-      "matches": ["*://web.whatsapp.com/*"],
-      "js": ["src/content.jsx"]
+      "matches": [
+        "*://web.whatsapp.com/*",
+        "*://forums.hardwarezone.com.sg/*"
+      ],
+      "js": [
+        "src/content.jsx"
+      ]
     }
   ]
 }

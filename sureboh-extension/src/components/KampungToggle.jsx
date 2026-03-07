@@ -8,14 +8,19 @@ export function KampungToggle({ currentLang, onLanguageChange }) {
     ];
 
     return (
-        <div className="flex bg-gray-100 p-1 rounded-md mb-3">
+        <div className="flex bg-gray-100 p-1 rounded-md mb-3 pointer-events-auto">
             {languages.map(lang => (
                 <button
                     key={lang.code}
-                    onClick={() => onLanguageChange(lang.code)}
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onLanguageChange(lang.code);
+                    }}
+                    onPointerDown={(e) => e.stopPropagation()}
                     className={`flex-1 text-xs py-1 px-2 rounded font-medium transition-colors ${currentLang === lang.code
-                            ? 'bg-white shadow-sm text-gray-800'
-                            : 'text-gray-500 hover:text-gray-700'
+                        ? 'bg-white shadow-sm text-gray-800'
+                        : 'text-gray-500 hover:text-gray-700'
                         }`}
                 >
                     {lang.label}
