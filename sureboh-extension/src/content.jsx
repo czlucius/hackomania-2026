@@ -39,14 +39,21 @@ if (chrome?.storage?.sync) {
 const scanDOM = () => {
     // --- Telegram Web Logic ---
     if (isTelegram) {
-        // Only target the innermost text element to avoid injecting into both parent and child
-        // .text-content is the actual text node; .message-content is its parent — only use parent as fallback
-        const messages = document.querySelectorAll(
-            '.text-content:not([data-sureboh-injected])'
-        );
+        // Telegram Web (K version): messages are in .message > .text-content or .message-content
+        // Telegram Web (Z version): messages are in .message-text or .text
+        const selectors = [
+            '.text-content:not([data-sureboh-injected])',
+            '.message-text:not([data-sureboh-injected])',
+            '.translatable-message:not([data-sureboh-injected])',
+            '.message > .bubble-content .text:not([data-sureboh-injected])',
+        ].join(', ');
+
+        const messages = document.querySelectorAll(selectors);
+        console.log(`SureBoh.ai: Found ${messages.length} Telegram messages to check.`);
 
         messages.forEach(msg => {
             const rawText = (msg.innerText || msg.textContent || '').trim();
+            console.log(`SureBoh.ai: Telegram msg text (${rawText.length} chars): "${rawText.slice(0, 60)}"`);
             if (rawText.length < 15) return;
 
             msg.setAttribute('data-sureboh-injected', 'true');
