@@ -1,10 +1,18 @@
-import React from 'react';
-import { ShieldAlert, Send, X } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { ShieldAlert, ShieldCheck, Send, X } from 'lucide-react';
 
-export function SendGuardModal({ assessment, onSendAnyway, onCancel }) {
-    const isLoading = !assessment;
+export function SendGuardModal({ assessment, onSendAnyway, onCancel, safeMode = false }) {
+    const isLoading = !assessment && !safeMode;
     const score = assessment?.trust_score ?? 0;
     const reason = assessment?.summary?.en?.[0]?.text || assessment?.verdict?.en || 'This message scored low on our trust scale.';
+
+    // Auto-dismiss the "All Clear" panel after 3 seconds
+    useEffect(() => {
+        if (safeMode && onCancel) {
+            const t = setTimeout(onCancel, 3000);
+            return () => clearTimeout(t);
+        }
+    }, [safeMode, onCancel]);
 
     return (
         <div
@@ -35,6 +43,36 @@ export function SendGuardModal({ assessment, onSendAnyway, onCancel }) {
                         <p className="text-sm font-semibold text-gray-600">Checking for misinformation…</p>
                         <p className="text-xs text-gray-400">SureAnot.ai</p>
                     </div>
+                ) : safeMode ? (
+                    /* ── All Clear panel ── */
+                    <>
+                        <div className="flex items-start gap-3 mb-4">
+                            <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+                                <ShieldCheck className="w-5 h-5 text-green-600" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <h3 className="font-bold text-gray-900 text-sm leading-snug">All Clear — looks safe to send!</h3>
+                                <p className="text-xs text-gray-500 mt-0.5">No misinformation detected by SureAnot.ai</p>
+                            </div>
+                            <button onClick={onCancel} className="text-gray-400 hover:text-gray-600 shrink-0">
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+                        <div className="bg-green-50 border border-green-100 rounded-lg p-3 mb-4">
+                            <div className="flex items-center gap-2">
+                                <div className="h-1.5 flex-1 bg-green-100 rounded-full overflow-hidden">
+                                    <div className="h-full bg-green-500 rounded-full transition-all duration-500" style={{ width: `${score}%` }} />
+                                </div>
+                                <span className="text-xs font-bold text-green-700 whitespace-nowrap">{score}% Trust</span>
+                            </div>
+                        </div>
+                        <button
+                            onClick={onCancel}
+                            className="w-full px-3 py-2 rounded-lg bg-green-500 text-white text-sm font-semibold hover:bg-green-600 transition-colors"
+                        >
+                            Got it
+                        </button>
+                    </>
                 ) : (
                     <>
                         {/* Header */}

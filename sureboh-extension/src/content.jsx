@@ -389,13 +389,14 @@ if ((isWhatsApp || isTelegram) && chrome?.runtime?.sendMessage) {
         return mount;
     }
 
-    function showGuard(assessment, onProceed, onCancel) {
+    function showGuard(assessment, onProceed, onCancel, safeMode = false) {
         if (!guardRoot) guardRoot = createRoot(getGuardMount());
         guardRoot.render(
             <SendGuardModal
                 assessment={assessment}
                 onSendAnyway={onProceed}
                 onCancel={onCancel}
+                safeMode={safeMode}
             />
         );
     }
@@ -412,9 +413,15 @@ if ((isWhatsApp || isTelegram) && chrome?.runtime?.sendMessage) {
             return (el?.innerText || el?.textContent || '').trim();
         }
         if (isTelegram) {
+            // Telegram Web K: .input-message-input
+            // Telegram Web A: #editable-message-text or .message-input-wrapper contenteditable
             const el =
-                document.querySelector('.input-message-input[contenteditable="true"]') ||
-                document.querySelector('[contenteditable="true"].input-field-input');
+                document.querySelector('.input-message-input') ||
+                document.querySelector('#editable-message-text') ||
+                document.querySelector('.input-field-input') ||
+                document.querySelector('[contenteditable="true"].composer-input') ||
+                document.querySelector('.message-input-wrapper [contenteditable="true"]') ||
+                document.querySelector('.reply-markup-message [contenteditable="true"]');
             return (el?.innerText || el?.textContent || '').trim();
         }
         return '';
@@ -429,7 +436,12 @@ if ((isWhatsApp || isTelegram) && chrome?.runtime?.sendMessage) {
             if (btn) { btn.click(); return; }
         }
         if (isTelegram) {
-            const btn = document.querySelector('.btn-send');
+            // Telegram Web K: .btn-send  |  Telegram Web A: button.send
+            const btn =
+                document.querySelector('button[aria-label="Send Message"]') ||
+                document.querySelector('button[aria-label="Send message"]') ||
+                document.querySelector('button.send') ||
+                document.querySelector('.btn-send');
             if (btn) { btn.click(); return; }
         }
         // Fallback: dispatch Enter on the compose input
@@ -442,9 +454,10 @@ if ((isWhatsApp || isTelegram) && chrome?.runtime?.sendMessage) {
         }
     }
 
-    async function guardSend(text) {
-        // Show loading state immediately
-        showGuard(null, () => { hideGuard(); triggerSend(); }, hideGuard);
+    // sendOnSafe=true  → proactive mode: auto-send after a clean result
+    // sendOnSafe=false → reactive Check button: just show result, let user decide to send
+    async function guardSend(text, sendOnSafe = true) {
+        showGuard(null, () => { hideGuard(); if (sendOnSafe) triggerSend(); }, hideGuard);
 
         try {
             const result = await new Promise((resolve, reject) => {
@@ -454,16 +467,21 @@ if ((isWhatsApp || isTelegram) && chrome?.runtime?.sendMessage) {
                 });
             });
 
-            if (result.trust_score < 40) {
+            if ((result?.trust_score ?? 100) < 40) {
+                // Potentially fake news — warn the user
                 showGuard(result, () => { hideGuard(); triggerSend(); }, hideGuard);
-            } else {
+            } else if (sendOnSafe) {
+                // Proactive mode: message is safe, proceed with original send
                 hideGuard();
                 triggerSend();
+            } else {
+                // Reactive Check button: show "all clear" panel — do NOT auto-send
+                showGuard(result, null, hideGuard, true);
             }
         } catch (e) {
             console.warn('SureAnot.ai: Send guard analysis failed, allowing send.', e);
             hideGuard();
-            triggerSend();
+            if (sendOnSafe) triggerSend();
         }
     }
 
@@ -474,7 +492,9 @@ if ((isWhatsApp || isTelegram) && chrome?.runtime?.sendMessage) {
         if (bypassGuard) { bypassGuard = false; return; }
 
         const sendBtn = e.target.closest(
-            '[data-testid="send"], button[aria-label="Send"], .btn-send, [data-testid="compose-btn-send"]'
+            '[data-testid="send"], button[aria-label="Send"], [data-testid="compose-btn-send"],' +
+            'button[aria-label="Send Message"], button[aria-label="Send message"],' +
+            'button.send, button.send.main-button, .btn-send'
         );
         if (!sendBtn) return;
 
@@ -494,10 +514,21 @@ if ((isWhatsApp || isTelegram) && chrome?.runtime?.sendMessage) {
         const composable = e.target.closest('[contenteditable="true"]');
         if (!composable) return;
 
+        // Skip keypresses inside received message bubbles (Telegram / WhatsApp)
         const inBubble = e.target.closest(
-            '.message-in, .message-out, .bubbles-inner, .message, .message-list-item'
+            '.message-in, .message-out, .bubbles-inner, .message-list-item,' +
+            '.bubble, .bubbles-group, .document-message, .media-sticker-wrapper'
         );
         if (inBubble) return;
+
+        // For Telegram, only intercept if focus is actually inside the compose area
+        if (isTelegram) {
+            const inCompose = e.target.closest(
+                '.input-message-input, .input-field-input, .composer-input, .chat-input,' +
+                '.message-input-wrapper, #editable-message-text'
+            );
+            if (!inCompose) return;
+        }
 
         const text = getComposedText();
         if (!text || text.length < 10) return;
@@ -518,6 +549,10 @@ if ((isWhatsApp || isTelegram) && chrome?.runtime?.sendMessage) {
         return (
             document.querySelector('[data-testid="send"]') ||
             document.querySelector('button[aria-label="Send"]') ||
+            document.querySelector('button[aria-label="Send Message"]') ||
+            document.querySelector('button[aria-label="Send message"]') ||
+            document.querySelector('button.send.main-button') ||
+            document.querySelector('button.send') ||
             document.querySelector('.btn-send')
         );
     }
@@ -578,7 +613,8 @@ if ((isWhatsApp || isTelegram) && chrome?.runtime?.sendMessage) {
             e.stopPropagation();
             const text = getComposedText();
             if (!text || text.length < 10) return;
-            guardSend(text);
+            // Reactive mode: check only — don't auto-send after a clean result
+            guardSend(text, false);
         });
 
         document.body.appendChild(btn);
