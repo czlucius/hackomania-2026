@@ -3,21 +3,34 @@ import { createRoot } from 'react-dom/client';
 import { InjectedOverlay } from './components/InjectedOverlay';
 import cssText from './index.css?inline';
 
+console.log("SureBoh.ai Content Script Loaded! Listening for WhatsApp messages...");
+
 // Wait for WhatsApp Web UI to load
 const observer = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
         if (mutation.addedNodes.length) {
-            // Look for plain text messages in WhatsApp
-            const messages = document.querySelectorAll('div[data-pre-plain-text]:not([data-sureboh-analyzed])');
+            // Broaden the search: try looking for common message classes or role row
+            const messages = document.querySelectorAll('div.message-in:not([data-sureboh-analyzed]), div.message-out:not([data-sureboh-analyzed]), div[role="row"]:not([data-sureboh-analyzed])');
 
             messages.forEach(msg => {
                 msg.setAttribute('data-sureboh-analyzed', 'true');
 
-                const rawText = msg.querySelector('span.selectable-text')?.innerText;
+                // WhatsApp text is often within span.selectable-text
+                const textNodes = msg.querySelectorAll('span.selectable-text.copyable-text');
+                let rawText = '';
+                textNodes.forEach(n => rawText += n.innerText + ' ');
+
+                // Fallback text extraction if exact classes changed
+                if (!rawText.trim()) {
+                    rawText = msg.innerText || '';
+                }
+
                 if (!rawText || rawText.length < 10) return; // Skip very short messages
 
-                // We wrap the message node or insert inside depending on layout constraints.
-                const bubble = msg.closest('[role="row"]') || msg.parentNode;
+                console.log("SureBoh.ai: Found message to analyze!", rawText.substring(0, 30) + "...");
+
+                // We inject a container right over the message bubble
+                const bubble = msg;
 
                 // Ensure bubble is relative for absolute positioning of overlay
                 if (getComputedStyle(bubble).position === 'static') {
