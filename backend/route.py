@@ -175,16 +175,25 @@ async def check(user_request: InputFormat):
 
     input_prompt = "\n".join(prompt_parts)
 
-    try:
-        # Use OpenAI SDK with structured outputs
-        completion = openai_client.beta.chat.completions.parse(
-            model="gpt-5-mini",
+    def call_model(model_name: str):
+        return openai_client.beta.chat.completions.parse(
+            model=model_name,
             messages=[
                 {"role": "system", "content": SYSTEM_INSTRUCTIONS},
                 {"role": "user", "content": input_prompt},
             ],
             response_format=FakeNewsAnalysisResult,
+            timeout=30,
         )
+
+    try:
+        # Try gpt-5-mini first, fall back to gpt-4o-mini if it fails or times out
+        try:
+            logger.info("Trying gpt-5-mini...")
+            completion = call_model("gpt-5-mini")
+        except Exception as e:
+            logger.warning(f"gpt-5-mini failed ({e}), falling back to gpt-4o-mini")
+            completion = call_model("gpt-4o-mini")
 
         # Extract the parsed response
         result = completion.choices[0].message.parsed
