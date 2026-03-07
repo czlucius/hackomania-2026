@@ -48,7 +48,7 @@ export function ExplainabilityTooltip({ children, assessment }) {
                         width: refs.reference.current?.offsetWidth ?? 'max-content',
                     }}
                     {...getFloatingProps()}
-                    className="z-[9999] bg-white rounded-xl shadow-2xl border border-gray-100 p-4 pointer-events-auto"
+                    className="z-[2147483647] bg-white rounded-xl shadow-2xl border border-gray-100 p-4 pointer-events-auto"
                 >
                     <KampungToggle currentLang={lang} onLanguageChange={setLang} />
 
