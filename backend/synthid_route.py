@@ -18,7 +18,7 @@ router = APIRouter()
 
 CODEBOOK_PATH = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
-    "artifacts", "codebook", "robust_codebook.pkl"
+    "artifacts", "codebook", "synthid_codebook.pkl"
 )
 
 _extractor: Optional[RobustSynthIDExtractor] = None

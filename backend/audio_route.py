@@ -66,9 +66,13 @@ async def check_audio(file: UploadFile = File(...)):
     safe_name = f"audio{ext}"
     print(f"Received audio file: {file.filename}, resolved extension: {ext}, size: {len(audio_bytes)} bytes" + str(audio_bytes[:20]))
     try:
+        import io
+        file_obj = io.BytesIO(audio_bytes)
+        file_obj.name = safe_name
+        
         transcription = openai_client.audio.transcriptions.create(
             model="whisper-1",
-            file=(safe_name, audio_bytes),
+            file=file_obj,
             language="en",
         )
     except Exception as e:

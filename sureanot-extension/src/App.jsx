@@ -33,14 +33,14 @@ function readFileAsDataUrl(file) {
 }
 
 const VERDICT_CONFIG = {
-  'Likely accurate':           { cls: 'verdict-safe',   Icon: ShieldCheck,    label: 'Likely Accurate' },
-  'Potentially misleading':    { cls: 'verdict-warn',   Icon: AlertTriangle,  label: 'Potentially Misleading' },
-  'Unverified / uncertain':    { cls: 'verdict-grey',   Icon: HelpCircle,     label: 'Unverified / Uncertain' },
-  safe:                        { cls: 'verdict-safe',   Icon: ShieldCheck,    label: 'Safe' },
-  potentially_misleading:      { cls: 'verdict-warn',   Icon: AlertTriangle,  label: 'Potentially Misleading' },
-  manipulated:                 { cls: 'verdict-danger', Icon: AlertTriangle,  label: 'Manipulated' },
-  scam:                        { cls: 'verdict-danger', Icon: AlertTriangle,  label: 'Scam Detected' },
-  uncertain:                   { cls: 'verdict-grey',   Icon: HelpCircle,     label: 'Uncertain' },
+  'Likely accurate': { cls: 'verdict-safe', Icon: ShieldCheck, label: 'Likely Accurate' },
+  'Potentially misleading': { cls: 'verdict-warn', Icon: AlertTriangle, label: 'Potentially Misleading' },
+  'Unverified / uncertain': { cls: 'verdict-grey', Icon: HelpCircle, label: 'Unverified / Uncertain' },
+  safe: { cls: 'verdict-safe', Icon: ShieldCheck, label: 'Safe' },
+  potentially_misleading: { cls: 'verdict-warn', Icon: AlertTriangle, label: 'Potentially Misleading' },
+  manipulated: { cls: 'verdict-danger', Icon: AlertTriangle, label: 'Manipulated' },
+  scam: { cls: 'verdict-danger', Icon: AlertTriangle, label: 'Scam Detected' },
+  uncertain: { cls: 'verdict-grey', Icon: HelpCircle, label: 'Uncertain' },
 }
 
 function VerdictBadge({ classification }) {
@@ -108,8 +108,8 @@ function App() {
 
   const canAnalyze =
     mode === 'text' ? textInput.trim().length > 0 :
-    mode === 'image' ? Boolean(selectedImage) :
-    Boolean(selectedAudio)
+      mode === 'image' ? Boolean(selectedImage) :
+        Boolean(selectedAudio)
 
   const onTextFileChange = async (event) => {
     const file = event.target.files?.[0]
@@ -205,6 +205,32 @@ function App() {
     }
   }
 
+  const [isScanningSynthID, setIsScanningSynthID] = useState(false)
+  const handleSynthIDScan = async () => {
+    if (!selectedImage) return
+    setIsScanningSynthID(true)
+    setError('')
+    try {
+      const dataUrl = await readFileAsDataUrl(selectedImage)
+      const commaIndex = dataUrl.indexOf(',')
+      const metadata = dataUrl.substring(0, commaIndex)
+      const imageB64 = dataUrl.substring(commaIndex + 1)
+      const mimeMatch = metadata.match(/data:(.*?);base64/)
+      const mime = mimeMatch?.[1] || selectedImage.type || 'image/jpeg'
+      const res = await sendRuntimeMessage({
+        type: 'SYNTHID_CHECK',
+        imageB64,
+        mime,
+      })
+      if (!res) throw new Error("SynthID check returned no data.")
+      setImageResult(prev => ({ ...(prev || { classification: 'uncertain', explanation: 'Please run full Analyze for misinformation check.' }), synthid: res }))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'SynthID scan failed.')
+    } finally {
+      setIsScanningSynthID(false)
+    }
+  }
+
   return (
     <div className="popup-shell">
       <header className="popup-header">
@@ -297,7 +323,7 @@ function App() {
         type="button"
         className="analyze-button"
         onClick={handleAnalyze}
-        disabled={!canAnalyze || isAnalyzing}
+        disabled={!canAnalyze || isAnalyzing || isScanningSynthID}
       >
         {isAnalyzing ? (
           <><Loader2 size={15} className="spin" /> Analyzing…</>
@@ -305,6 +331,22 @@ function App() {
           <><ShieldCheck size={15} /> Analyze</>
         )}
       </button>
+
+      {mode === 'image' && selectedImage && (
+        <button
+          type="button"
+          className="analyze-button"
+          style={{ marginTop: '8px', backgroundColor: '#5b21b6', border: '1px solid #7c3aed' }}
+          onClick={handleSynthIDScan}
+          disabled={!canAnalyze || isScanningSynthID || isAnalyzing}
+        >
+          {isScanningSynthID ? (
+            <><Loader2 size={15} className="spin" /> Scanning Watermark…</>
+          ) : (
+            <><Fingerprint size={15} /> Scan AI Watermark (SynthID)</>
+          )}
+        </button>
+      )}
 
       {error && <p className="error-text">{error}</p>}
 
