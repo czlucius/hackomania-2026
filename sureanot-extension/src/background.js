@@ -110,6 +110,85 @@ async function analyzeWithBackend(text, url = '') {
     };
 }
 
+async function analyzeAudioWithBackend(audioB64, mime) {
+    // Reconstruct Blob from base64
+    const binaryStr = atob(audioB64);
+    const bytes = Uint8Array.from(binaryStr, c => c.charCodeAt(0));
+    const blob = new Blob([bytes], { type: mime || 'audio/ogg' });
+
+    // Pick a file extension that Whisper accepts
+    const mimeToExt = {
+        'audio/ogg': 'ogg', 'audio/mpeg': 'mp3', 'audio/mp4': 'm4a',
+        'audio/webm': 'webm', 'audio/wav': 'wav', 'audio/flac': 'flac',
+        'audio/aac': 'aac', 'video/mp4': 'mp4', 'audio/opus': 'ogg',
+        'audio/x-m4a': 'm4a',
+    };
+    const ext = mimeToExt[mime] || 'ogg';
+    const file = new File([blob], `voice.${ext}`, { type: mime || 'audio/ogg' });
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const res = await fetch('http://localhost:8000/api/audio/check', {
+        method: 'POST',
+        body: formData,
+    });
+
+    if (!res.ok) throw new Error(`Audio API error: ${res.status}`);
+    const data = await res.json();
+
+    // Map backend response to the same shape used by analyzeWithBackend
+    let verdictEn = 'Unverified / uncertain';
+    let trustScore = 50;
+
+    if (data.classification === 'Likely accurate') {
+        verdictEn = 'Likely accurate';
+        trustScore = 95;
+    } else if (data.classification === 'Potentially misleading') {
+        verdictEn = 'Potentially misleading';
+        trustScore = 15;
+    }
+
+    const summaryEn = [];
+    if (data.explanation) {
+        summaryEn.push({
+            type: data.classification === 'Likely accurate' ? 'real' : 'fake',
+            text: data.explanation,
+        });
+    }
+    if (data.recommended_action) {
+        summaryEn.push({ type: 'info', text: `Action: ${data.recommended_action}` });
+    }
+
+    return {
+        transcript: data.transcript || '',
+        trust_score: trustScore,
+        classification: data.classification,
+        confidence_level: data.confidence_level,
+        verdict: {
+            en: data.verdict || verdictEn,
+            zh: null,
+            ms: null,
+        },
+        summary: {
+            en: summaryEn,
+            zh: [],
+            ms: [],
+        },
+        sources: (data.sources || []).map(src => {
+            let faviconUrl = null;
+            if (src.url) {
+                try {
+                    const domain = new URL(src.url).hostname;
+                    faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
+                } catch (e) { }
+            }
+            return { name: src.name, url: src.url || null, faviconUrl };
+        }),
+        original_explanation: data.explanation,
+    };
+}
+
 async function translateOnDemand(text, targetLang) {
     const res = await fetch('http://localhost:8000/api/translate', {
         method: 'POST',
@@ -192,6 +271,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 });
             });
 
+        return true;
+    } else if (request.type === 'ANALYZE_AUDIO') {
+        analyzeAudioWithBackend(request.audioB64, request.mime)
+            .then(result => sendResponse(result))
+            .catch(err => {
+                console.error('Audio analysis failed:', err);
+                sendResponse({ error: true, transcript: '', classification: 'Unverified / uncertain' });
+            });
         return true;
     } else if (request.type === 'SYNTHID_CHECK') {
         checkSynthID(request.src, request.imageB64, request.mime)

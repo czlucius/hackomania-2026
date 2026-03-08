@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { InjectedOverlay } from './components/InjectedOverlay';
 import { AnalyzeManualButton } from './components/AnalyzeManualButton';
 import { ImageScanOverlay } from './components/ImageScanOverlay';
+import { AudioScanOverlay } from './components/AudioScanOverlay';
 import { SendGuardModal } from './components/SendGuardModal';
 import cssText from './index.css?inline';
 
@@ -444,6 +445,72 @@ const scanDOM = () => {
         const root = createRoot(reactRoot);
         root.render(<ImageScanOverlay chromeMessage={chromeMessage} reactive={currentAnalysisMode === 'reactive'} />);
     });
+
+    // --- Voice / Audio Message Scanning (WhatsApp & Telegram only) ---
+    if (isWhatsApp || isTelegram) {
+        let audioSelector;
+        if (isWhatsApp) {
+            // Voice messages in WhatsApp Web render an <audio> inside the message bubble
+            audioSelector = '.message-in audio:not([data-sureanot-audio-analyzed]), .message-out audio:not([data-sureanot-audio-analyzed])';
+        } else {
+            // Telegram Web (both K and Z versions) — voice notes live inside message containers
+            audioSelector = [
+                '.message audio:not([data-sureanot-audio-analyzed])',
+                '.bubble-content audio:not([data-sureanot-audio-analyzed])',
+                '[class*="Voice"] audio:not([data-sureanot-audio-analyzed])',
+                '[class*="voice"] audio:not([data-sureanot-audio-analyzed])',
+                '[class*="Audio"] audio:not([data-sureanot-audio-analyzed])',
+            ].join(', ');
+        }
+
+        const audioEls = document.querySelectorAll(audioSelector);
+        audioEls.forEach(audioEl => {
+            const src = audioEl.src || '';
+            // Only process blob: URLs (what WhatsApp/Telegram use for voice messages)
+            if (!src.startsWith('blob:')) return;
+
+            audioEl.setAttribute('data-sureanot-audio-analyzed', 'true');
+
+            // Fetch the blob in the content-script context (where the blob URL is valid),
+            // convert to base64, then hand off to the background service worker.
+            fetch(src)
+                .then(resp => {
+                    if (!resp.ok) throw new Error('Blob fetch failed');
+                    const mime = (resp.headers.get('content-type') || 'audio/ogg').split(';')[0];
+                    return resp.arrayBuffer().then(buffer => ({ buffer, mime }));
+                })
+                .then(({ buffer, mime }) => {
+                    const bytes = new Uint8Array(buffer);
+                    const audioB64 = btoa(Array.from(bytes, byte => String.fromCharCode(byte)).join(''));
+
+                    const chromeMessage = { type: 'ANALYZE_AUDIO', audioB64, mime, platform: platformName };
+
+                    // Inject footnote below the voice message bubble
+                    const bubble = audioEl.closest('.message-in, .message-out')
+                        || audioEl.closest('.message, .bubble-content')
+                        || audioEl.parentElement;
+                    if (!bubble) return;
+
+                    const container = document.createElement('div');
+                    container.style.cssText = 'position:relative;margin-top:4px;display:block;width:100%;clear:both;z-index:50;';
+                    bubble.appendChild(container);
+
+                    const shadow = container.attachShadow({ mode: 'open' });
+                    const style = document.createElement('style');
+                    style.textContent = cssText;
+                    shadow.appendChild(style);
+
+                    const reactRoot = document.createElement('div');
+                    reactRoot.style.width = '100%';
+                    shadow.appendChild(reactRoot);
+
+                    createRoot(reactRoot).render(<AudioScanOverlay chromeMessage={chromeMessage} />);
+                })
+                .catch(e => {
+                    console.warn('SureAnot.ai: Could not process voice message audio', e);
+                });
+        });
+    }
 };
 
 // Run once immediately to catch Server-Side Rendered content (like HWZ posts)
