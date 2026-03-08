@@ -28,4 +28,4 @@ async def hello():
 app.include_router(router=route.router, prefix="/api")
 app.include_router(router=image_route.router, prefix="/api")
 app.include_router(router=audio_route.router, prefix="/api")
-app.include_router(router=synthid_route.router, prefix="/api")
+# app.include_router(router=synthid_route.router, prefix="/api")
