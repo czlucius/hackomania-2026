@@ -24,16 +24,12 @@
     "type": "module"
   },
   "action": {
-    "default_title": "SureAnot.ai",
+    "default_title": "SureAnot Verification",
     "default_popup": "index.html"
   },
   "options_ui": {
     "page": "src/options.html",
     "open_in_tab": true
-  },
-  "action": {
-    "default_popup": "popup.html",
-    "default_title": "SureAnot Verification"
   },
   "content_scripts": [
     {
