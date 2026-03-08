@@ -316,3 +316,105 @@
   color: #334155;
   line-height: 1.5;
 }
+
+/* ── Audio selected state ────────────────────────────────────────────────── */
+.audio-selected-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.audio-file-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.audio-file-icon { color: #2563eb; flex-shrink: 0; }
+
+.audio-file-name {
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: #0f172a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.audio-file-size {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+/* ── Transcript box ──────────────────────────────────────────────────────── */
+.transcript-box {
+  background: #f1f5f9;
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.transcript-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64748b;
+}
+
+.transcript-text {
+  font-size: 0.8rem;
+  color: #334155;
+  line-height: 1.5;
+  max-height: 100px;
+  overflow-y: auto;
+}
+
+/* ── Result sections (credibility, sources, recommended action) ─────────── */
+.result-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 7px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.result-section-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64748b;
+}
+
+.sources-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.source-link {
+  font-size: 0.78rem;
+  color: #2563eb;
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.source-link:hover { text-decoration: underline; }
+
+.source-name {
+  font-size: 0.78rem;
+  color: #334155;
+}
