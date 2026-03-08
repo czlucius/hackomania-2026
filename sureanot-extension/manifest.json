@@ -8,6 +8,7 @@
   ],
   "host_permissions": [
     "*://web.whatsapp.com/*",
+    "*://*.whatsapp.net/*",
     "*://forums.hardwarezone.com.sg/*",
     "*://web.telegram.org/*",
     "*://*.telegram.org/*",
