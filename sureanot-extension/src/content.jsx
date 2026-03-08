@@ -80,12 +80,13 @@ const scanDOM = () => {
             '[class*="message-text"]:not([data-sureanot-injected])'
         ].join(', ');
 
-        const allMessages = document.querySelectorAll(selectors);
-        // Only analyze the most recent 3 messages to avoid overwhelming the service worker
-        const messages = Array.from(allMessages).slice(-3);
-        console.log(`SureAnot.ai: Found ${allMessages.length} Telegram messages, analyzing ${messages.length} most recent.`);
+        const messages = Array.from(document.querySelectorAll(selectors));
+        const totalMsgs = messages.length;
+        if (totalMsgs > 0) {
+            console.log(`SureAnot.ai: Found ${totalMsgs} Telegram messages.`);
+        }
 
-        messages.forEach(msg => {
+        messages.forEach((msg, index) => {
             const rawText = (msg.innerText || msg.textContent || '').trim();
             console.log(`SureAnot.ai: Telegram msg text (${rawText.length} chars): "${rawText.slice(0, 60)}"`);
             if (rawText.length < 15) return;
@@ -116,7 +117,8 @@ const scanDOM = () => {
             shadow.appendChild(reactRoot);
 
             const root = createRoot(reactRoot);
-            root.render(<AnalyzeManualButton text={rawText} />);
+            const isRecent = index >= totalMsgs - 3;
+            root.render(isRecent ? getComponentForMode(rawText) : <AnalyzeManualButton text={rawText} />);
         });
     }
 
@@ -192,14 +194,15 @@ const scanDOM = () => {
     else if (isWhatsApp) {
         // confirmed via DOM inspection: .message-in and .message-out return actual message bubbles
         // .copyable-text holds the text content inside each bubble
-        const allMsgBubbles = document.querySelectorAll(
+        const msgBubbles = Array.from(document.querySelectorAll(
             '.message-in:not([data-sureanot-analyzed]), .message-out:not([data-sureanot-analyzed])'
-        );
-        // Limit to 3 most recent to avoid overwhelming the service worker
-        const msgBubbles = Array.from(allMsgBubbles).slice(-3);
-        console.log(`SureAnot.ai: Found ${allMsgBubbles.length} WhatsApp messages, analyzing ${msgBubbles.length} most recent.`);
+        ));
+        const totalBubbles = msgBubbles.length;
+        if (totalBubbles > 0) {
+            console.log(`SureAnot.ai: Found ${totalBubbles} WhatsApp messages.`);
+        }
 
-        msgBubbles.forEach(bubble => {
+        msgBubbles.forEach((bubble, index) => {
             // Try multiple text selectors for different WhatsApp Web versions
             const textEl = bubble.querySelector('.copyable-text') ||
                 bubble.querySelector('[data-pre-plain-text]') ||
@@ -233,7 +236,8 @@ const scanDOM = () => {
             shadow.appendChild(reactRoot);
 
             const root = createRoot(reactRoot);
-            root.render(<AnalyzeManualButton text={rawText} />);
+            const isRecent = index >= totalBubbles - 3;
+            root.render(isRecent ? getComponentForMode(rawText) : <AnalyzeManualButton text={rawText} />);
         });
     }
 
@@ -311,10 +315,13 @@ const scanDOM = () => {
             '._a9zs:not([data-sureanot-injected])',
         ].join(', ');
 
-        const captions = document.querySelectorAll(captionSelectors);
-        console.log(`SureAnot.ai: Found ${captions.length} Instagram caption elements.`);
+        const captionsList = Array.from(document.querySelectorAll(captionSelectors));
+        const totalCaptions = captionsList.length;
+        if (totalCaptions > 0) {
+            console.log(`SureAnot.ai: Found ${totalCaptions} Instagram caption elements.`);
+        }
 
-        captions.forEach(caption => {
+        captionsList.forEach((caption, index) => {
             const rawText = (caption.innerText || caption.textContent || '').trim();
             if (rawText.length < 20) return;
 
@@ -344,7 +351,8 @@ const scanDOM = () => {
             shadow.appendChild(reactRoot);
 
             const root = createRoot(reactRoot);
-            root.render(<AnalyzeManualButton text={rawText} />);
+            const isRecent = index < 3;
+            root.render(isRecent ? getComponentForMode(rawText) : <AnalyzeManualButton text={rawText} />);
         });
     }
 
