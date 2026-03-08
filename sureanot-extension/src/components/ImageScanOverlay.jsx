@@ -56,14 +56,33 @@ export function ImageScanOverlay({ chromeMessage, reactive }) {
     }
 
     const isManipulated = result?.classification === 'manipulated';
-    const bgColor = state === 'safe' ? 'bg-green-900/90 border-green-500/50' : (isManipulated ? 'bg-purple-900/90 border-purple-500/50' : 'bg-red-900/90 border-red-500/50');
-    const TextColor = state === 'safe' ? 'text-green-300' : (isManipulated ? 'text-purple-300' : 'text-red-300');
+    const isUncertain = result?.classification === 'uncertain';
+
+    let bgColor = 'bg-red-900/90 border-red-500/50';
+    let TextColor = 'text-red-300';
+
+    if (state === 'safe') {
+        bgColor = 'bg-green-900/90 border-green-500/50';
+        TextColor = 'text-green-300';
+    } else if (isManipulated) {
+        bgColor = 'bg-purple-900/90 border-purple-500/50';
+        TextColor = 'text-purple-300';
+    } else if (isUncertain) {
+        bgColor = 'bg-slate-800/90 border-slate-500/50';
+        TextColor = 'text-slate-300';
+    }
+
     const Icon = state === 'safe' ? CheckCircle2 : AlertTriangle;
 
-    let shortLabel = state === 'safe' ? 'Authentic' : (isManipulated ? 'AI Generated' : 'Flagged');
+    // To prevent the UI from being too aggressive, completely hide the overlay if proactive and either safe or uncertain.
+    if (!reactive && (state === 'safe' || isUncertain)) {
+        return null;
+    }
+
+    let shortLabel = state === 'safe' ? 'Authentic' : (isManipulated ? 'AI Generated' : (isUncertain ? 'Uncertain' : 'Flagged'));
     let detailedLabel = state === 'safe'
         ? 'Likely Authentic / Not AI'
-        : (isManipulated ? 'Likely AI-Generated' : 'Potentially Misleading');
+        : (isManipulated ? 'Likely AI-Generated' : (isUncertain ? 'Analysis Inconclusive' : 'Potentially Misleading'));
 
     return (
         <div className="absolute top-2 left-2 z-50 pointer-events-none">
