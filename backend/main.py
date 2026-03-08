@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import route
 import image_route
+import audio_route
+import synthid_route
 from dotenv import load_dotenv
 
 # Load environment variables at the entry point
@@ -25,3 +27,5 @@ async def hello():
 
 app.include_router(router=route.router, prefix="/api")
 app.include_router(router=image_route.router, prefix="/api")
+app.include_router(router=audio_route.router, prefix="/api")
+app.include_router(router=synthid_route.router, prefix="/api")

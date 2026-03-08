@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { FileText, ImageIcon, Loader2, ShieldCheck, AlertTriangle, HelpCircle, X, Upload } from 'lucide-react'
+import { FileText, ImageIcon, Mic, Loader2, ShieldCheck, AlertTriangle, HelpCircle, X, Upload, Fingerprint } from 'lucide-react'
 import './App.css'
 
 function sendRuntimeMessage(message) {
@@ -68,14 +68,17 @@ function ConfidencePips({ level }) {
 }
 
 function App() {
-  const [mode, setMode] = useState('text') // 'text' | 'image'
+  const [mode, setMode] = useState('text') // 'text' | 'image' | 'audio'
 
   const [textInput, setTextInput] = useState('')
   const [selectedImage, setSelectedImage] = useState(null)
   const [imagePreviewUrl, setImagePreviewUrl] = useState('')
+  const [selectedAudio, setSelectedAudio] = useState(null)
 
   const [textResult, setTextResult] = useState(null)
   const [imageResult, setImageResult] = useState(null)
+  const [audioResult, setAudioResult] = useState(null)
+  const [audioTranscript, setAudioTranscript] = useState('')
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [error, setError] = useState('')
 
@@ -85,16 +88,28 @@ function App() {
     setError('')
     setTextResult(null)
     setImageResult(null)
+    setAudioResult(null)
+    setAudioTranscript('')
     if (next === 'text') {
       if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl)
       setImagePreviewUrl('')
       setSelectedImage(null)
+      setSelectedAudio(null)
+    } else if (next === 'image') {
+      setTextInput('')
+      setSelectedAudio(null)
     } else {
+      if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl)
+      setImagePreviewUrl('')
+      setSelectedImage(null)
       setTextInput('')
     }
   }
 
-  const canAnalyze = mode === 'text' ? textInput.trim().length > 0 : Boolean(selectedImage)
+  const canAnalyze =
+    mode === 'text' ? textInput.trim().length > 0 :
+    mode === 'image' ? Boolean(selectedImage) :
+    Boolean(selectedAudio)
 
   const onTextFileChange = async (event) => {
     const file = event.target.files?.[0]
@@ -127,17 +142,46 @@ function App() {
     setImageResult(null)
   }
 
+  const onAudioChange = (event) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+    setSelectedAudio(file)
+    setAudioResult(null)
+    setAudioTranscript('')
+    setError('')
+    event.target.value = ''
+  }
+
+  const clearAudio = () => {
+    setSelectedAudio(null)
+    setAudioResult(null)
+    setAudioTranscript('')
+  }
+
   const handleAnalyze = async () => {
     if (!canAnalyze) return
     setIsAnalyzing(true)
     setError('')
     setTextResult(null)
     setImageResult(null)
+    setAudioResult(null)
+    setAudioTranscript('')
 
     try {
       if (mode === 'text') {
         const res = await sendRuntimeMessage({ type: 'ANALYZE_MESSAGE', text: textInput.trim() })
         setTextResult(res)
+      } else if (mode === 'audio') {
+        const formData = new FormData()
+        formData.append('file', selectedAudio, selectedAudio.name)
+        const res = await fetch('http://localhost:8000/api/audio/check', {
+          method: 'POST',
+          body: formData,
+        })
+        if (!res.ok) throw new Error(`Audio API error: ${res.status}`)
+        const data = await res.json()
+        setAudioTranscript(data.transcript || '')
+        setAudioResult(data)
       } else {
         const dataUrl = await readFileAsDataUrl(selectedImage)
         const commaIndex = dataUrl.indexOf(',')
@@ -161,8 +205,6 @@ function App() {
     }
   }
 
-  const textSummary = textResult?.summary?.en || []
-
   return (
     <div className="popup-shell">
       <header className="popup-header">
@@ -181,6 +223,10 @@ function App() {
         <button type="button" className={`tab ${mode === 'image' ? 'tab-active' : ''}`} onClick={() => switchMode('image')}>
           <ImageIcon size={13} />
           Image
+        </button>
+        <button type="button" className={`tab ${mode === 'audio' ? 'tab-active' : ''}`} onClick={() => switchMode('audio')}>
+          <Mic size={13} />
+          Audio
         </button>
       </div>
 
@@ -222,6 +268,31 @@ function App() {
         </div>
       )}
 
+      {mode === 'audio' && (
+        <div className="input-panel">
+          {!selectedAudio ? (
+            <label className="image-drop-zone">
+              <Mic size={28} className="drop-icon" />
+              <span className="drop-main-text">Click to upload audio</span>
+              <span className="drop-sub-text">MP3 · MP4 · M4A · WAV · WEBM supported</span>
+              <input type="file" accept="audio/*,.mp3,.mp4,.m4a,.wav,.webm,.ogg,.flac" onChange={onAudioChange} />
+            </label>
+          ) : (
+            <div className="audio-selected-wrap">
+              <div className="audio-file-info">
+                <Mic size={15} className="audio-file-icon" />
+                <span className="audio-file-name">{selectedAudio.name}</span>
+                <span className="audio-file-size">{(selectedAudio.size / 1024).toFixed(0)} KB</span>
+              </div>
+              <button type="button" className="remove-image-btn" onClick={clearAudio}>
+                <X size={12} />
+                Remove
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
       <button
         type="button"
         className="analyze-button"
@@ -241,12 +312,35 @@ function App() {
         <div className="result-card">
           <VerdictBadge classification={textResult.classification} />
           <ConfidencePips level={textResult.confidence_level} />
-          {textSummary.length > 0 && (
-            <ul className="summary-list">
-              {textSummary.map((item, i) => (
-                <li key={i} className={`summary-item summary-${item.type}`}>{item.text}</li>
-              ))}
-            </ul>
+          {textResult.explanation && (
+            <p className="result-explanation">{textResult.explanation}</p>
+          )}
+          {textResult.source_credibility && (
+            <div className="result-section">
+              <span className="result-section-label">Source Credibility</span>
+              <p className="result-explanation">{textResult.source_credibility}</p>
+            </div>
+          )}
+          {textResult.sources?.length > 0 && (
+            <div className="result-section">
+              <span className="result-section-label">Sources</span>
+              <ul className="sources-list">
+                {textResult.sources.map((src, i) => (
+                  <li key={i}>
+                    {src.url
+                      ? <a className="source-link" href={src.url} target="_blank" rel="noopener noreferrer">{src.name}</a>
+                      : <span className="source-name">{src.name}</span>
+                    }
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {textResult.recommended_action && (
+            <div className="result-section">
+              <span className="result-section-label">Recommended Action</span>
+              <p className="result-explanation">{textResult.recommended_action}</p>
+            </div>
           )}
         </div>
       )}
@@ -257,6 +351,62 @@ function App() {
           <ConfidencePips level={imageResult.confidence} />
           {imageResult.explanation && (
             <p className="result-explanation">{imageResult.explanation}</p>
+          )}
+          {imageResult.synthid != null && (
+            <div className="result-section">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px' }}>
+                <Fingerprint size={13} style={{ color: imageResult.synthid.is_synthid_watermarked ? '#a78bfa' : '#6b7280', flexShrink: 0 }} />
+                <span style={{ fontSize: '11px', fontWeight: 600, color: imageResult.synthid.is_synthid_watermarked ? '#a78bfa' : '#6b7280' }}>
+                  SynthID: {imageResult.synthid.is_synthid_watermarked ? 'AI watermark detected' : 'No watermark detected'}
+                </span>
+              </div>
+              <p className="result-explanation" style={{ marginTop: '2px', fontSize: '11px', opacity: 0.75 }}>
+                Confidence: {(imageResult.synthid.confidence * 100).toFixed(0)}%
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {audioResult && (
+        <div className="result-card">
+          {audioTranscript && (
+            <div className="transcript-box">
+              <span className="transcript-label">Transcript</span>
+              <p className="transcript-text">{audioTranscript}</p>
+            </div>
+          )}
+          <VerdictBadge classification={audioResult.classification} />
+          <ConfidencePips level={audioResult.confidence_level} />
+          {audioResult.explanation && (
+            <p className="result-explanation">{audioResult.explanation}</p>
+          )}
+          {audioResult.source_credibility && (
+            <div className="result-section">
+              <span className="result-section-label">Source Credibility</span>
+              <p className="result-explanation">{audioResult.source_credibility}</p>
+            </div>
+          )}
+          {audioResult.sources?.length > 0 && (
+            <div className="result-section">
+              <span className="result-section-label">Sources</span>
+              <ul className="sources-list">
+                {audioResult.sources.map((src, i) => (
+                  <li key={i}>
+                    {src.url
+                      ? <a className="source-link" href={src.url} target="_blank" rel="noopener noreferrer">{src.name}</a>
+                      : <span className="source-name">{src.name}</span>
+                    }
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {audioResult.recommended_action && (
+            <div className="result-section">
+              <span className="result-section-label">Recommended Action</span>
+              <p className="result-explanation">{audioResult.recommended_action}</p>
+            </div>
           )}
         </div>
       )}

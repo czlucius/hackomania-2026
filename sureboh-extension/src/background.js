@@ -188,6 +188,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 sendResponse(null);
             });
         return true;
+    } else if (request.type === 'SYNTHID_CHECK') {
+        checkSynthID(request.src, request.imageB64, request.mime)
+            .then(result => sendResponse(result))
+            .catch(err => {
+                console.error('SynthID check failed:', err);
+                sendResponse(null);
+            });
+        return true;
     }
 });
 
@@ -248,4 +256,24 @@ async function analyzeImageWithBackend(imageUrl, imageB64, mime, alt, platform) 
 
     if (cacheKey) imageCache.set(cacheKey, result);
     return result;
+}
+
+async function checkSynthID(imageUrl, imageB64, mime) {
+    const body = {};
+    if (imageB64) {
+        body.image_b64 = imageB64;
+        body.image_mime = mime || 'image/jpeg';
+    } else if (imageUrl) {
+        body.image_url = imageUrl;
+    } else {
+        return null;
+    }
+
+    const res = await fetch('http://localhost:8000/api/image/synthid', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+    });
+    if (!res.ok) throw new Error(`SynthID API error: ${res.status}`);
+    return await res.json();
 }
