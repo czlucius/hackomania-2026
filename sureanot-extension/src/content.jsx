@@ -116,7 +116,7 @@ const scanDOM = () => {
             shadow.appendChild(reactRoot);
 
             const root = createRoot(reactRoot);
-            root.render(getComponentForMode(rawText));
+            root.render(<AnalyzeManualButton text={rawText} />);
         });
     }
 
@@ -233,7 +233,7 @@ const scanDOM = () => {
             shadow.appendChild(reactRoot);
 
             const root = createRoot(reactRoot);
-            root.render(getComponentForMode(rawText));
+            root.render(<AnalyzeManualButton text={rawText} />);
         });
     }
 
@@ -344,7 +344,7 @@ const scanDOM = () => {
             shadow.appendChild(reactRoot);
 
             const root = createRoot(reactRoot);
-            root.render(getComponentForMode(rawText));
+            root.render(<AnalyzeManualButton text={rawText} />);
         });
     }
 
